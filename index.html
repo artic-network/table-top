@@ -2,147 +2,138 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Frogspawn - Document Viewer</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        html, body {
+            height: 100%;
         }
-
         body {
-            font-family: Arial, sans-serif;
-            height: 100vh;
+            font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+            background-color: #f8f9fa;
             overflow: hidden;
         }
-
-        .container {
-            display: flex;
+        .app-root {
             height: 100vh;
-        }
-
-        .sidebar {
-            width: 30%;
-            min-width: 250px;
-            max-width: 400px;
-            border-right: 2px solid #ccc;
-            overflow-y: auto;
-            background-color: #f5f5f5;
-        }
-
-        .sidebar h2 {
-            padding: 20px;
-            background-color: #4CAF50;
-            color: white;
-            margin: 0;
-        }
-
-        .document-list {
-            list-style: none;
-            padding: 0;
-        }
-
-        .document-item {
-            padding: 15px 20px;
-            border-bottom: 1px solid #ddd;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .document-item:hover {
-            background-color: #e0e0e0;
-        }
-
-        .document-item.active {
-            background-color: #d0d0d0;
-            font-weight: bold;
-        }
-
-        .document-item .title {
-            font-weight: 500;
-            color: #333;
-            margin-bottom: 5px;
-        }
-
-        .document-item .description {
-            font-size: 0.9em;
-            color: #666;
-        }
-
-        .content {
-            flex: 1;
             display: flex;
             flex-direction: column;
         }
-
-        .header {
-            padding: 20px;
-            background-color: #4CAF50;
-            color: white;
+        .main-row {
+            flex: 1 1 auto;
+            overflow: hidden;
+        }
+        .sidebar {
+            height: 100%;
+            overflow: auto;
+            background: #ffffff;
+            border-right: 1px solid #e9ecef;
+        }
+        .content-area {
+            height: 100%;
+            overflow: hidden;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column;
+            background: #fff;
         }
-
-        .status {
-            font-size: 0.9em;
-            opacity: 0.9;
-        }
-
-        .status.loading {
-            color: #ffeb3b;
-        }
-
-        .status.error {
-            color: #f44336;
-        }
-
-        iframe {
-            flex: 1;
+        .viewer-iframe {
             border: none;
             width: 100%;
+            height: 100%;
+            min-height: 0; /* allow flex child to shrink */
         }
-
-        .no-content {
-            flex: 1;
+        .table-clickable tbody tr { cursor: pointer; }
+        .status-badge.loading { background-color: #ffd54f; color: #212529; }
+        .status-badge.error { background-color: #f8d7da; color: #842029; }
+        .no-content-center {
+            flex: 1 1 auto;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #999;
-            font-size: 1.2em;
+            color: #6c757d;
+            font-size: 1.1rem;
         }
-
-        .error-message {
-            padding: 20px;
-            background-color: #ffebee;
-            color: #c62828;
-            border-left: 4px solid #f44336;
-            margin: 20px;
+        .search-input {
+            min-width: 0; /* for flex */
+        }
+        @media (max-width: 767.98px) {
+            .sidebar { min-height: 200px; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="sidebar">
-            <h2>Documents</h2>
-            <ul class="document-list" id="documentList">
-                <li class="document-item">
-                    <div class="title">Loading...</div>
-                    <div class="description">Please wait while documents are loaded</div>
-                </li>
-            </ul>
-        </div>
-        <div class="content">
-            <div class="header">
-                <h1>Frogspawn Document Viewer</h1>
-                <div class="status" id="status">Initializing...</div>
+    <div class="app-root">
+        <!-- Top navbar -->
+        <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
+            <div class="container-fluid">
+                <a class="navbar-brand d-flex align-items-center" href="#">
+                    <i class="bi bi-file-earmark-text-fill fs-4 text-success me-2"></i>
+                    <span class="fw-semibold">Frogspawn</span>
+                    <small class="text-muted ms-2">Document Viewer</small>
+                </a>
+
+                <div class="d-flex align-items-center gap-2">
+                    <div id="status" class="status-badge badge rounded-pill">Initializing...</div>
+                    <button id="refreshBtn" class="btn btn-outline-secondary btn-sm" title="Refresh"><i class="bi bi-arrow-clockwise"></i></button>
+                </div>
             </div>
-            <div id="contentArea">
-                <div class="no-content">Select a document from the list to view it here</div>
+        </nav>
+
+        <div class="container-fluid main-row p-0">
+            <div class="row g-0 h-100">
+                <!-- Sidebar -->
+                <aside class="col-12 col-md-4 col-lg-3 sidebar p-3">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h5 class="mb-0">Documents</h5>
+                        <div class="d-flex gap-2 align-items-center">
+                            <input id="searchInput" class="form-control form-control-sm search-input" placeholder="Search" aria-label="Search documents">
+                            <button id="clearSearch" class="btn btn-sm btn-outline-secondary" title="Clear"><i class="bi bi-x-lg"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive" style="max-height: calc(100vh - 160px);">
+                        <table id="documentTable" class="table table-hover table-sm table-clickable mb-0">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th scope="col">Title</th>
+                                    <th scope="col" class="d-none d-md-table-cell">Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="2" class="text-muted">Loading documents...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mt-3 text-muted small">Auto-refresh interval: <span id="intervalLabel">30s</span></div>
+                </aside>
+
+                <!-- Content -->
+                <section class="col content-area d-flex flex-column">
+                    <div class="p-3 border-bottom d-flex align-items-center justify-content-between">
+                        <div>
+                            <h6 class="mb-0" id="docTitle">Select a document</h6>
+                            <small id="docSubtitle" class="text-muted">Click any row on the left to preview the document</small>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <button id="openNewTab" class="btn btn-outline-primary btn-sm" disabled><i class="bi bi-box-arrow-up-right"></i> Open</button>
+                        </div>
+                    </div>
+
+                    <div id="contentArea" class="flex-fill position-relative">
+                        <div class="no-content-center" id="noContent">Select a document from the list to view it here</div>
+                    </div>
+                </section>
             </div>
         </div>
     </div>
+
+    <!-- Bootstrap JS (bundle includes Popper) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="" crossorigin="anonymous"></script>
 
     <script>
         class DocumentViewer {
@@ -150,153 +141,164 @@
                 this.jsonUrl = jsonUrl;
                 this.pollInterval = pollInterval;
                 this.documents = [];
-                this.activeDocumentUrl = null;
+                this.activeIndex = -1;
                 this.pollTimer = null;
-                
-                this.documentList = document.getElementById('documentList');
+
+                // Elements
+                this.tableBody = document.querySelector('#documentTable tbody');
                 this.contentArea = document.getElementById('contentArea');
                 this.statusElement = document.getElementById('status');
-                
+                this.titleElement = document.getElementById('docTitle');
+                this.subtitleElement = document.getElementById('docSubtitle');
+                this.openBtn = document.getElementById('openNewTab');
+                this.searchInput = document.getElementById('searchInput');
+                this.clearSearchBtn = document.getElementById('clearSearch');
+                this.refreshBtn = document.getElementById('refreshBtn');
+                this.intervalLabel = document.getElementById('intervalLabel');
+                this.noContent = document.getElementById('noContent');
+
                 this.init();
             }
 
             init() {
+                this.intervalLabel.textContent = Math.round(this.pollInterval / 1000) + 's';
                 this.loadDocuments();
                 this.startPolling();
+                this.attachUI();
+            }
+
+            attachUI() {
+                this.refreshBtn.addEventListener('click', () => this.loadDocuments());
+                this.searchInput.addEventListener('input', (e) => this.filterList(e.target.value));
+                this.clearSearchBtn.addEventListener('click', () => { this.searchInput.value = ''; this.filterList(''); });
+                this.openBtn.addEventListener('click', () => this.openActiveInNewTab());
             }
 
             async loadDocuments() {
                 try {
                     this.updateStatus('Loading...', 'loading');
-                    
                     const response = await fetch(this.jsonUrl);
-                    
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    
+                    if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
                     const data = await response.json();
-                    
-                    // Validate the data structure
-                    if (!Array.isArray(data)) {
-                        throw new Error('Invalid JSON format: expected an array');
-                    }
-                    
+                    if (!Array.isArray(data)) throw new Error('Invalid JSON format: expected an array');
                     this.documents = data;
                     this.renderDocumentList();
-                    this.updateStatus(`Last updated: ${new Date().toLocaleTimeString()}`, '');
-                    
-                } catch (error) {
-                    console.error('Error loading documents:', error);
-                    this.showError(`Failed to load documents: ${error.message}`);
+                    this.updateStatus(`Last updated: ${new Date().toLocaleTimeString()}`);
+                } catch (err) {
+                    console.error(err);
+                    this.showError(`Failed to load documents: ${err.message}`);
                     this.updateStatus('Error loading documents', 'error');
                 }
             }
 
-            renderDocumentList() {
-                if (this.documents.length === 0) {
-                    this.documentList.innerHTML = `
-                        <li class="document-item">
-                            <div class="title">No documents available</div>
-                            <div class="description">The document list is empty</div>
-                        </li>
-                    `;
+            renderDocumentList(filter = '') {
+                const rows = [];
+                const lowerFilter = filter.toLowerCase();
+                if (!this.documents || this.documents.length === 0) {
+                    this.tableBody.innerHTML = '<tr><td colspan="2" class="text-muted">No documents available</td></tr>';
                     return;
                 }
 
-                this.documentList.innerHTML = '';
-                
-                this.documents.forEach((doc, index) => {
-                    const li = document.createElement('li');
-                    li.className = 'document-item';
-                    if (doc.url === this.activeDocumentUrl) {
-                        li.classList.add('active');
+                this.tableBody.innerHTML = '';
+                this.documents.forEach((doc, idx) => {
+                    const title = (doc.title || doc.description || `Document ${idx+1}`);
+                    const description = (doc.description || doc.title || '');
+                    if (lowerFilter) {
+                        if (!((title + ' ' + description).toLowerCase().includes(lowerFilter))) return;
                     }
-                    
-                    const title = document.createElement('div');
-                    title.className = 'title';
-                    title.textContent = doc.title || doc.description || `Document ${index + 1}`;
-                    
-                    const description = document.createElement('div');
-                    description.className = 'description';
-                    description.textContent = doc.description || doc.title || 'No description available';
-                    
-                    li.appendChild(title);
-                    li.appendChild(description);
-                    
-                    li.addEventListener('click', () => this.displayDocument(doc));
-                    
-                    this.documentList.appendChild(li);
+
+                    const tr = document.createElement('tr');
+                    tr.setAttribute('data-index', idx);
+                    if (idx === this.activeIndex) tr.classList.add('table-primary');
+
+                    const tdTitle = document.createElement('td');
+                    tdTitle.textContent = title;
+                    const tdDesc = document.createElement('td');
+                    tdDesc.textContent = description;
+
+                    tr.appendChild(tdTitle);
+                    tr.appendChild(tdDesc);
+
+                    tr.addEventListener('click', (e) => this.displayDocument(idx, e.currentTarget));
+
+                    rows.push(tr);
                 });
+
+                if (rows.length === 0) {
+                    this.tableBody.innerHTML = '<tr><td colspan="2" class="text-muted">No documents match your search</td></tr>';
+                } else {
+                    rows.forEach(r => this.tableBody.appendChild(r));
+                }
             }
 
-            displayDocument(doc) {
-                if (!doc.url) {
+            displayDocument(index, rowElement) {
+                const doc = this.documents[index];
+                if (!doc || !doc.url) {
                     this.showError('Document has no URL specified');
                     return;
                 }
 
-                this.activeDocumentUrl = doc.url;
-                
-                // Update active state in the list
-                const items = this.documentList.querySelectorAll('.document-item');
-                items.forEach(item => item.classList.remove('active'));
-                event.currentTarget.classList.add('active');
-                
-                // Create and display iframe
-                this.contentArea.innerHTML = `
-                    <iframe src="${this.escapeHtml(doc.url)}" title="${this.escapeHtml(doc.title || doc.description || 'Document')}"></iframe>
-                `;
+                // Update active index and highlight row
+                this.activeIndex = index;
+                const prev = this.tableBody.querySelector('tr.table-primary');
+                if (prev) prev.classList.remove('table-primary');
+                if (rowElement) rowElement.classList.add('table-primary');
+
+                this.titleElement.textContent = doc.title || doc.description || `Document ${index+1}`;
+                this.subtitleElement.textContent = doc.description || '';
+                this.openBtn.disabled = false;
+                this.openBtn.dataset.url = doc.url;
+
+                // Show iframe
+                this.contentArea.innerHTML = '';
+                const iframe = document.createElement('iframe');
+                iframe.className = 'viewer-iframe';
+                iframe.src = doc.url;
+                iframe.title = this.escapeHtml(doc.title || doc.description || 'Document');
+                this.contentArea.appendChild(iframe);
+            }
+
+            openActiveInNewTab() {
+                if (!this.openBtn.dataset.url) return;
+                window.open(this.openBtn.dataset.url, '_blank', 'noopener');
             }
 
             showError(message) {
-                this.contentArea.innerHTML = `
-                    <div class="error-message">
-                        <strong>Error:</strong> ${this.escapeHtml(message)}
-                    </div>
-                `;
+                this.contentArea.innerHTML = `<div class="p-4"><div class="alert alert-danger" role="alert"><strong>Error:</strong> ${this.escapeHtml(message)}</div></div>`;
             }
 
-            updateStatus(message, className) {
+            updateStatus(message, className = '') {
                 this.statusElement.textContent = message;
-                this.statusElement.className = 'status';
-                if (className) {
-                    this.statusElement.classList.add(className);
-                }
+                this.statusElement.className = 'status-badge badge rounded-pill';
+                if (className) this.statusElement.classList.add(className);
             }
 
             startPolling() {
-                // Clear any existing timer
-                if (this.pollTimer) {
-                    clearInterval(this.pollTimer);
-                }
-                
-                // Poll for updates at the specified interval
-                this.pollTimer = setInterval(() => {
-                    this.loadDocuments();
-                }, this.pollInterval);
+                if (this.pollTimer) clearInterval(this.pollTimer);
+                this.pollTimer = setInterval(() => this.loadDocuments(), this.pollInterval);
             }
 
             stopPolling() {
-                if (this.pollTimer) {
-                    clearInterval(this.pollTimer);
-                    this.pollTimer = null;
-                }
+                if (this.pollTimer) { clearInterval(this.pollTimer); this.pollTimer = null; }
+            }
+
+            filterList(value) {
+                this.renderDocumentList(value);
             }
 
             escapeHtml(text) {
-                const div = document.createElement('div');
-                div.textContent = text;
-                return div.innerHTML;
+                const d = document.createElement('div');
+                d.textContent = text;
+                return d.innerHTML;
             }
         }
 
-        // Initialize the viewer
-        // By default, look for a config parameter in the URL or use a default JSON file
+        // Initialization
         const urlParams = new URLSearchParams(window.location.search);
         const jsonUrl = urlParams.get('json') || 'documents.json';
-        const pollInterval = parseInt(urlParams.get('interval')) || 30000; // Default: 30 seconds
+        const pollInterval = parseInt(urlParams.get('interval')) || 30000;
 
+        // Create viewer
         const viewer = new DocumentViewer(jsonUrl, pollInterval);
     </script>
 </body>
