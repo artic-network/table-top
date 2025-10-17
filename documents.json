@@ -1,0 +1,22 @@
+[
+    {
+        "title": "Introduction",
+        "description": "Welcome document explaining the Frogspawn system",
+        "url": "sample1.html"
+    },
+    {
+        "title": "Training Scenario A",
+        "description": "Interactive training exercise with tasks and objectives",
+        "url": "sample2.html"
+    },
+    {
+        "title": "Reference Guide",
+        "description": "Quick reference guide with commands and procedures",
+        "url": "sample3.html"
+    },
+    {
+        "title": "GitHub",
+        "description": "External link example - GitHub homepage",
+        "url": "https://github.com"
+    }
+]
