@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Viewer — read message from Firebase</title>
+  <style>
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; padding: 2rem; max-width: 720px; margin: auto; }
+    .box { padding: 1rem; background: #f7f7fb; border: 1px solid #e1e1e8; border-radius: 6px; }
+    .meta { color: #666; font-size: .9rem; margin-top: .5rem; }
+    .warn { color: #b14; }
+  </style>
+</head>
+<body>
+  <h1>Viewer</h1>
+  <p>This page displays the latest message stored at <code>/currentMessage</code>.</p>
+
+  <div class="box">
+    <div id="messageText">— no message yet —</div>
+    <div class="meta" id="messageMeta">Awaiting data...</div>
+  </div>
+
+  <p style="margin-top:1rem;">
+    Realtime listener status: <span id="realtimeStatus">not connected</span>
+  </p>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.25.0/firebase-app.js";
+    import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/9.25.0/firebase-database.js";
+
+    // TODO: Replace the following config with your Firebase project's config object.
+    const firebaseConfig = {
+      apiKey: "REPLACE_WITH_YOUR_VALUE",
+      authDomain: "REPLACE_WITH_YOUR_VALUE",
+      databaseURL: "https://REPLACE_WITH_YOUR_PROJECT_ID.firebaseio.com",
+      projectId: "REPLACE_WITH_YOUR_VALUE",
+      storageBucket: "REPLACE_WITH_YOUR_VALUE",
+      messagingSenderId: "REPLACE_WITH_YOUR_VALUE",
+      appId: "REPLACE_WITH_YOUR_VALUE"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const msgTextEl = document.getElementById('messageText');
+    const msgMetaEl = document.getElementById('messageMeta');
+    const rtStatusEl = document.getElementById('realtimeStatus');
+
+    const dbRef = ref(db, '/currentMessage');
+
+    // Realtime listener (preferred)
+    onValue(dbRef, (snapshot) => {
+      const val = snapshot.val();
+      if (val && typeof val === 'object') {
+        showMessage(val.text, val.updatedAt, true);
+      } else if (typeof val === 'string') {
+        // accomodate older writes that may just be strings
+        showMessage(val, null, true);
+      } else {
+        msgTextEl.textContent = '— no message yet —';
+        msgMetaEl.textContent = 'No data found at /currentMessage';
+      }
+      rtStatusEl.textContent = 'connected';
+      rtStatusEl.style.color = 'green';
+    }, (err) => {
+      console.error('realtime error', err);
+      rtStatusEl.textContent = 'error';
+      rtStatusEl.className = 'warn';
+    });
+
+    // Polling fallback: fetch every n seconds in case realtime fails for some reason
+    const POLL_INTERVAL_MS = 5000;
+    async function pollOnce() {
+      try {
+        const snap = await get(dbRef);
+        const val = snap.val();
+        if (val && typeof val === 'object') {
+          showMessage(val.text, val.updatedAt, false);
+        } else if (typeof val === 'string') {
+          showMessage(val, null, false);
+        }
+      } catch (err) {
+        console.error('Polling failed', err);
+      }
+    }
+
+    setInterval(pollOnce, POLL_INTERVAL_MS);
+
+    function showMessage(text, updatedAt, viaRealtime) {
+      msgTextEl.textContent = text ?? '— empty string —';
+      if (updatedAt) {
+        const ts = new Date(updatedAt);
+        msgMetaEl.textContent = `Updated: ${ts.toLocaleString()} ${viaRealtime ? '(realtime)' : '(polled)'}`;
+      } else {
+        msgMetaEl.textContent = `Updated: unknown ${viaRealtime ? '(realtime)' : '(polled)'}`;
+      }
+    }
+  </script>
+</body>
+</html>

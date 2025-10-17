@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Control — send message to Firebase</title>
+  <style>
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; padding: 2rem; max-width: 720px; margin: auto; }
+    label, input, button { display: block; margin-bottom: .6rem; }
+    input { width: 100%; padding: .6rem; font-size: 1rem; }
+    button { padding: .6rem 1rem; font-size: 1rem; }
+    .status { margin-top: 1rem; color: #555; }
+  </style>
+</head>
+<body>
+  <h1>Control</h1>
+  <p>Type a string and press Send to store it in the Firebase Realtime Database at <code>/currentMessage</code>.</p>
+
+  <label for="message">Message</label>
+  <input id="message" type="text" placeholder="Enter a message..." />
+
+  <button id="sendBtn">Send</button>
+
+  <div class="status" id="status">Not sent yet.</div>
+
+  <!-- Use ES modules from the Firebase CDN -->
+  <script type="module">
+    // Import the Firebase SDK (modular)
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.25.0/firebase-app.js";
+    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.25.0/firebase-database.js";
+
+    // TODO: Replace the following config with your Firebase project's config object.
+    // You can find this in Firebase Console -> Project settings -> General -> Your apps -> SDK setup and configuration
+    const firebaseConfig = {
+      apiKey: "REPLACE_WITH_YOUR_VALUE",
+      authDomain: "REPLACE_WITH_YOUR_VALUE",
+      databaseURL: "https://REPLACE_WITH_YOUR_PROJECT_ID.firebaseio.com",
+      projectId: "REPLACE_WITH_YOUR_VALUE",
+      storageBucket: "REPLACE_WITH_YOUR_VALUE",
+      messagingSenderId: "REPLACE_WITH_YOUR_VALUE",
+      appId: "REPLACE_WITH_YOUR_VALUE"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // UI elements
+    const msgInput = document.getElementById('message');
+    const sendBtn = document.getElementById('sendBtn');
+    const statusEl = document.getElementById('status');
+
+    // Write the message object to /currentMessage
+    async function sendMessage(text) {
+      const payload = {
+        text: String(text),
+        updatedAt: Date.now()
+      };
+
+      try {
+        // set() will replace the value at this path. If you prefer history, use push()
+        await set(ref(db, '/currentMessage'), payload);
+        statusEl.textContent = `Sent at ${new Date(payload.updatedAt).toLocaleString()}`;
+        statusEl.style.color = 'green';
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = 'Error sending message: ' + err.message;
+        statusEl.style.color = 'red';
+      }
+    }
+
+    // Event listeners
+    sendBtn.addEventListener('click', () => {
+      const text = msgInput.value.trim();
+      if (!text) {
+        statusEl.textContent = 'Please enter a message first.';
+        statusEl.style.color = '#555';
+        return;
+      }
+      sendMessage(text);
+    });
+
+    // Send on Enter
+    msgInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        sendBtn.click();
+      }
+    });
+  </script>
+</body>
+</html>
