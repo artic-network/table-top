@@ -78,7 +78,7 @@ body{
   padding:18px;
 }
 .console-left{
-  width:46%;
+  width:34%;
   min-width:280px;
   background:linear-gradient(180deg, rgba(4,8,12,0.45), rgba(7,10,14,0.35));
   border-radius:6px;
@@ -119,7 +119,7 @@ body{
 
 /* Results table */
 .console-right{
-  width:54%;
+  width:66%;
   min-width:340px;
   display:flex;
   flex-direction:column;
