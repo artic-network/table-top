@@ -3,7 +3,7 @@
 // 3) export helpers: getValue (sync), getValueAsync (async) and insertValueSpan(key, target, opts)
 
 (function () {
-  const jsonUrl = './settings.json'; // change to full URL if needed
+  const jsonUrl = '/settings.json'; // change to full URL if needed
 
   // Start fetch immediately and expose the Promise
   window.appDataPromise = (async () => {
