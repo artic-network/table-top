@@ -3,24 +3,36 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>JSON -> Variables Demo</title>
+  <title>JSON -> span demo</title>
   <style>
-    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; padding: 1rem; }
-    .kv { margin: .25rem 0; }
-    .key { font-weight: 600; margin-right: .5rem; color:#1a1a1a; }
-    .val { color:#333; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Courier New", monospace; }
-    .warning { color: #b33; font-size: .9rem; margin-top: .75rem; }
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial; padding: 1rem; }
+    .json-value { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Courier New", monospace; background:#f7f7f7; padding:2px 6px; border-radius:3px; }
+    .placeholder { color: #666; }
   </style>
 </head>
 <body>
-  <h1>JSON -> Variables Demo</h1>
-  <p>This page fetches <code>settings.json</code> (same folder) and sets top-level keys as globals, then displays them.</p>
+  <h1>JSON value insertion demo</h1>
 
-  <div id="output" aria-live="polite"></div>
+  <p>Inline example — below I call the helper to insert a <code>&lt;span&gt;</code> with the value for key "siteTitle":</p>
+  <div id="inline-example" class="placeholder">(value will be added below)</div>
+  <script>
+    // Call insertValueSpan directly where you need it.
+    // This will wait for the JSON fetch to finish if it's still in progress.
+    insertValueSpan('siteTitle', '#inline-example')
+      .then(span => console.log('Inserted span', span))
+      .catch(err => console.error('Failed to insert span:', err));
+  </script>
 
-  <div class="warning">
-    Note: setting data as globals can overwrite built-in globals. See safer alternative in the console (window.appData).
-  </div>
+  <hr>
+
+  <p>Attribute-based example — place elements with <code>data-json-key</code>. The script will fill them automatically when data is ready:</p>
+  <p>Site title: <span data-json-key="siteTitle" class="placeholder"></span></p>
+  <p>Author: <span data-json-key="author" class="placeholder"></span></p>
+  <p>Year: <span data-json-key="year" class="placeholder"></span></p>
+
+  <hr>
+
+  <p>If you prefer to get the raw value from JS, use getValueAsync('key') or getValue('key') (sync, returns undefined if data not yet loaded).</p>
 
   <script src="js/get_settings.js"></script>
 </body>
