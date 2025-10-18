@@ -61,18 +61,25 @@
         </ul>
       </section>
 
+	<!--	
       <section class="card actions">
         <a class="btn" href="data/wastewater_krona.html" target="_blank" rel="noopener">Open Krona (new tab)</a>
         <a class="btn" href="data/metadata.csv" download>Download metadata</a>
         <a class="btn" href="data/bracken_abundances.tsv" download>Download abundances</a>
       </section>
+      -->
     </aside>
 
-    <section class="main-panel" aria-label="Krona visualization">
-      <div class="panel-header">
-        <h2>Interactive taxonomic composition — Krona view</h2>
-        <p class="muted">Embedded Krona plot showing taxonomic breakdown derived from metagenomic classification. Interact with the plot to explore species/OTU level composition.</p>
-      </div>
+	<section class="main-panel" aria-label="Krona visualization">
+		<div style="display: flex;">
+		<div style="margin-right: auto;" class="panel-header">
+			<h2>Interactive taxonomic composition — Krona view</h2>
+			<p class="muted">Embedded Krona plot showing taxonomic breakdown derived from metagenomic classification. Interact with the plot to explore species/OTU level composition.</p>
+		</div>
+		<section class="card actions">
+		<a class="btn" href="data/wastewater_krona.html" target="_blank" rel="noopener">Open Krona (new tab)</a>
+		</section>
+		</div>
 
       <div class="krona-frame-wrap" role="region" aria-label="Krona iframe">
         <iframe src="data/wastewater_krona.html"

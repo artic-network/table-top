@@ -2,36 +2,43 @@
     {
         "title": "Introduction",
         "description": "Welcome document explaining the Frogspawn system",
+        "day": 0,
         "url": "introduction.html"
     },
     {
         "title": "ACDC SitRep #1",
-        "description": "Daily ACDC Situation Report — Emerging virus event, San Diego Region (fictional sample sitrep).",
-        "url": "acdc_sitrep.html"
+        "description": "Daily ACDC Situation Report — Emerging virus event, San Diego Region.",
+        "day": 1,
+        "url": "acdc_sitrep_1.html"
     },
     {
         "title": "Vir-Diag-3000-pro",
         "description": "Hemorrhagic Fever Syndromic Panel — Run Results.",
+        "day": 2,
         "url": "vir_diag.html"
     },
     {
         "title": "WHO DON",
         "description": "Disease Outbreak News — [PLACEHOLDER TITLE]",
+        "day": 3,
         "url": "WHO_DON.html"
     },
     {
         "title": "Social Media",
         "description": "Thread on naming novel virus",
+        "day": 4,
         "url": "social_media_thread.html"
     },
     {
         "title": "SDPHL waste water",
         "description": "Waste Water Metagenomic sequencing - San Diego",
+        "day": 5,
         "url": "SDPHL_wastewater_report.html"
     },
     {
         "title": "GitHub",
         "description": "External link example - GitHub homepage",
+        "day": 6,
         "url": "https://github.com"
     }
 ]
