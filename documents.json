@@ -5,6 +5,11 @@
         "url": "sample1.html"
     },
     {
+        "title": "ACDC Situation Report — Emerging Virus — San Diego Region",
+        "description": "Daily ACDC Situation Report — Emerging virus event, San Diego Region (fictional sample sitrep).",
+        "url": "acdc_sitrep.html"
+    },
+    {
         "title": "Training Scenario A",
         "description": "Interactive training exercise with tasks and objectives",
         "url": "sample2.html"
