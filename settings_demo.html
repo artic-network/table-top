@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>JSON -> Variables Demo</title>
+  <style>
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; padding: 1rem; }
+    .kv { margin: .25rem 0; }
+    .key { font-weight: 600; margin-right: .5rem; color:#1a1a1a; }
+    .val { color:#333; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Courier New", monospace; }
+    .warning { color: #b33; font-size: .9rem; margin-top: .75rem; }
+  </style>
+</head>
+<body>
+  <h1>JSON -> Variables Demo</h1>
+  <p>This page fetches <code>settings.json</code> (same folder) and sets top-level keys as globals, then displays them.</p>
+
+  <div id="output" aria-live="polite"></div>
+
+  <div class="warning">
+    Note: setting data as globals can overwrite built-in globals. See safer alternative in the console (window.appData).
+  </div>
+
+  <script src="js/get_settings.js"></script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "siteTitle": "My Demo Site",
+  "author": "Jane Doe",
+  "year": 2025,
+  "features": ["fetch", "globals", "display"],
+  "settings": {
+    "showBeta": true,
+    "maxItems": 10
+  }
+}
