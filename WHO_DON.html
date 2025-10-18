@@ -4,10 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Disease Outbreak News — [PLACEHOLDER TITLE]</title>
-
-  <!-- Noto Sans is close to WHO typography; optional if offline -->
+  <script src="js/setup.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@300;400;700;900&display=swap" rel="stylesheet">
-
   <link rel="stylesheet" href="css/WHO_DON.css">
 </head>
 <body>
@@ -41,7 +39,7 @@
         <h1 id="don-title" class="title">[PLACEHOLDER — OUTBREAK TITLE]</h1>
 
         <div class="meta">
-          <span class="meta-item date">Date: <time datetime="2025-10-18">18 October 2025</time></span>
+          <span class="meta-item date">Date: <span class="date">1 January 2025</span></span>
           <span class="meta-sep">|</span>
           <span class="meta-item location">Location: [PLACEHOLDER COUNTRY]</span>
         </div>
@@ -116,8 +114,13 @@
 
   <footer class="site-footer" role="contentinfo">
     <div class="footer-inner">
-      <p>© World Health Organization. This document is a placeholder mock-up for styling only.</p>
+      <p>This is part of a fictional scenario. Any resemblance to real persons, living or dead, or actual outbreaks, past or future, is definitely entirely coincidental.</p>
     </div>
   </footer>
+
+  <script>
+    setup();
+  </script>
+
 </body>
 </html>

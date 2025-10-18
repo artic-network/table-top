@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>San Diego Public Health Reference Laboratory — Metagenomic Surveillance Report</title>
-
+  <script src="js/setup.js"></script>
   <link rel="stylesheet" href="css/SDPHL_report.css">
 </head>
 <body>
@@ -24,9 +24,9 @@
     </div>
 
     <div class="report-meta">
-      <div><strong>Report ID:</strong> SDPHL-META-2025-1018-001</div>
-      <div><strong>Generated:</strong> 2025-10-18 15:24:35 UTC</div>
-      <div><strong>Author:</strong> rambaut (SDPHL Bioinformatics)</div>
+      <div><strong>Report ID:</strong> SDPHL-META-<span class="year"></span>-118-001</div>
+      <div><strong>Generated:</strong> <span class="iso-date">2025-01-01</span> 15:24:35 UTC</div>
+      <div><strong>Author:</strong> kganders (SDPHL Bioinformatics)</div>
     </div>
   </header>
 
@@ -46,7 +46,7 @@
         <h3>Sample details</h3>
         <dl>
           <dt>Sample set</dt><dd>SD Metro wastewater composites (site set A4)</dd>
-          <dt>Collection window</dt><dd>2025-10-15 — 2025-10-16</dd>
+          <!-- <dt>Collection window</dt><dd>2025-10-15 — 2025-10-16</dd> -->
           <dt>Processing</dt><dd>RNA extraction, rRNA depletion, random-primed cDNA, library prep</dd>
         </dl>
       </section>
@@ -118,8 +118,13 @@
 
   <footer class="site-footer" role="contentinfo">
     <div class="container">
-      <small>San Diego Public Health Reference Laboratory — 2025 • For public-health surveillance use only</small>
+      <small>This is part of a fictional scenario. Any resemblance to real persons, living or dead, or actual outbreaks, past or future, is definitely entirely coincidental.</small>
     </div>
   </footer>
+
+  <script>
+    setup();
+  </script>
+
 </body>
 </html>
