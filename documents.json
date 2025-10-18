@@ -2,22 +2,27 @@
     {
         "title": "Introduction",
         "description": "Welcome document explaining the Frogspawn system",
-        "url": "sample1.html"
+        "url": "introduction.html"
     },
     {
-        "title": "ACDC Situation Report — Emerging Virus — San Diego Region",
+        "title": "ACDC SitRep #1",
         "description": "Daily ACDC Situation Report — Emerging virus event, San Diego Region (fictional sample sitrep).",
         "url": "acdc_sitrep.html"
     },
     {
-        "title": "Training Scenario A",
-        "description": "Interactive training exercise with tasks and objectives",
-        "url": "sample2.html"
+        "title": "Vir-Diag-3000-pro",
+        "description": "Hemorrhagic Fever Syndromic Panel — Run Results.",
+        "url": "vir_diag.html"
     },
     {
-        "title": "Reference Guide",
-        "description": "Quick reference guide with commands and procedures",
-        "url": "sample3.html"
+        "title": "WHO DON",
+        "description": "Disease Outbreak News — [PLACEHOLDER TITLE]",
+        "url": "WHO_DON.html"
+    },
+    {
+        "title": "Social Media",
+        "description": "Thread on naming novel virus",
+        "url": "social_media_thread.html"
     },
     {
         "title": "GitHub",

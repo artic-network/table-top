@@ -1,4 +1,4 @@
-# frogspawn — GitHub Pages + Firebase Realtime DB example
+	# frogspawn — GitHub Pages + Firebase Realtime DB example
 
 This shows a minimal example of hosting two pages on GitHub Pages:
 
