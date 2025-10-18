@@ -47,12 +47,8 @@ body{
 .emblem{
   width:56px;height:56px;border-radius:50%;
   background:rgba(255,255,255);
-  border:2px solid rgba(255,255,255,0.22);
-  /* flex:0 0 56px; */
-  background-image: url('../assets/who_logo.png');
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
+  border:2px solid #008ECD; 
+  flex:0 0 56px;
 }
 .site-title .who{font-weight:700;letter-spacing:0.4px}
 .site-title .site-name{font-weight:300;font-size:0.9rem;opacity:0.95}
