@@ -49,7 +49,7 @@ body{
   background:rgba(255,255,255);
   border:2px solid rgba(255,255,255,0.22);
   /* flex:0 0 56px; */
-  background-image: url('/assets/who_logo.png');
+  background-image: url('../assets/who_logo.png');
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
