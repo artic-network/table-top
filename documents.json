@@ -25,6 +25,11 @@
         "url": "social_media_thread.html"
     },
     {
+        "title": "Metagenomics",
+        "description": "Waste Water Metagenomic sequencing - San Diego",
+        "url": "wastewater_seq_title.html"
+    },
+    {
         "title": "GitHub",
         "description": "External link example - GitHub homepage",
         "url": "https://github.com"
