@@ -11,7 +11,7 @@
   --silly-amber: #ffd280;
   --card-bg: #071025;
   --mono: "SFMono-Regular", Menlo, Monaco, "Roboto Mono", "Courier New", monospace;
-  --max-width: 980px;
+  --max-width: 1200px;
 }
 
 *{box-sizing:border-box}
