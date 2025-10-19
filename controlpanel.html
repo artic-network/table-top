@@ -156,9 +156,9 @@
                         </div>
                     </div>
 
-                    <div id="contentArea" class="flex-fill position-relative">
+                    <!-- <div id="contentArea" class="flex-fill position-relative">
                         <div class="no-content-center" id="noContent">Select a document from the list to view it here</div>
-                    </div>
+                    </div> -->
                 </section>
             </div>
         </div>
@@ -328,12 +328,12 @@
                 this.openBtn.dataset.url = url;
 
                 // Show iframe
-                this.contentArea.innerHTML = '';
-                const iframe = document.createElement('iframe');
-                iframe.className = 'viewer-iframe';
-                iframe.src = url;
-                iframe.title = this.escapeHtml(doc.title || doc.description || 'Document');
-                this.contentArea.appendChild(iframe);
+                // this.contentArea.innerHTML = '';
+                // const iframe = document.createElement('iframe');
+                // iframe.className = 'viewer-iframe';
+                // iframe.src = url;
+                // iframe.title = this.escapeHtml(doc.title || doc.description || 'Document');
+                // this.contentArea.appendChild(iframe);
             }
 
             openActiveInNewTab() {
