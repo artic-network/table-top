@@ -6,33 +6,69 @@
         "url": "introduction.html"
     },
     {
-        "title": "ACDC SitRep #1",
-        "description": "Daily ACDC Situation Report — Emerging virus event, San Diego Region.",
+        "title": "ACDC alert",
+        "description": "Undiagnosed febrile illness — San Diego Region.",
         "day": 1,
-        "url": "acdc_sitrep_1.html"
+        "url": "acdc_alert.html"
+    },
+    {
+        "title": "Epidemiological investigation",
+        "description": "Results: Undiagnosed Febrile Illness — Enhanced Epidemiological Investigation.",
+        "day": 1,
+        "url": "acdc_epidemiology.html"
     },
     {
         "title": "Vir-Diag-3000-pro",
-        "description": "Hemorrhagic Fever Syndromic Panel — Run Results.",
+        "description": "Results: Hemorrhagic Fever Syndromic Panel.",
         "day": 2,
         "url": "vir_diag.html"
     },
     {
+        "title": "Metagenomic sequencing",
+        "description": "Results: Metagenomic Sequencing of Index Case.",
+        "day": 3,
+        "url": "metagenomics_index.html"
+    },
+    {
+        "title": "ACDC SitRep #2",
+        "description": "Situation Report: Undiagnosed Febrile Illness — Southern California.",
+        "day": 4,
+        "url": "acdc_sitrep_2.html"
+    },    
+    {
+        "title": "Metagenomics - Concert",
+        "description": "Results: Metagenomic Sequencing of Heavy Metal Concert Cases.",
+        "day": 5,
+        "url": "metagenomics_cases.html"
+    },
+    {
+        "title": "Metagenomics - Controls",
+        "description": "Results: Metagenomic Sequencing of Heavy Metal Concert Controls.",
+        "day": 5,
+        "url": "metagenomics_controls.html"
+    },
+    {
+        "title": "Metagenomics - Pet shop",
+        "description": "Results: Environmental Metagenomic Sequencing of Pet Shop.",
+        "day": 5,
+        "url": "metagenomics_pet_shop.html"
+    },
+    {
+        "title": "SDPHL waste water",
+        "description": "Waste Water Metagenomic sequencing - San Diego",
+        "day": 6,
+        "url": "wastewater_report.html"
+    },
+    {
         "title": "WHO DON",
         "description": "Disease Outbreak News — [PLACEHOLDER TITLE]",
-        "day": 3,
+        "day": 7,
         "url": "WHO_DON.html"
     },
     {
         "title": "Thread on naming novel virus",
         "description": "Have you seen this social media thread discussing names for the novel virus?",
-        "day": 4,
+        "day": 7,
         "url": "social_media_thread.html"
-    },
-    {
-        "title": "SDPHL waste water",
-        "description": "Waste Water Metagenomic sequencing - San Diego",
-        "day": 5,
-        "url": "SDPHL_wastewater_report.html"
-    }
+    }   
 ]

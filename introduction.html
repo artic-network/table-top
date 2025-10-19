@@ -18,33 +18,49 @@
         h2 {
             color:#E06961}
         p {
-            font-size: 1.2em;
-            line-height: 1.6;
         }
+        a {
+            color: inherit;
+            text-decoration: inherit;
+        }        
         .info {
             color: #E6D595;
             background: #005B68;
             padding: 20px;
             border-radius: 10px;
             margin-top: 20px;
+            font-size: 1.0em;
+            font-weight: 300;
+        }
+        .footer {
+            color: #F7EECA;
+            margin-top: 20px;
+            padding: 20px;
+            font-size: 1.0em;
+            font-weight: 300;
         }
     </style>
 </head>
 <body>
     <h1>Welcome to the ARTIC Outbreak Response Exercise</h1>
-    <p>This document provides an overview of the exercise and its objectives.</p>
+    <h2>Can YOU prevent an outbreak becoming the next pandemic?</h2>
     
     <div class="info">
-        <h2>About This System</h2>
-        <p>The Frogspawn system allows you to:</p>
-        <ul>
-            <li>Browse a list of documents from a JSON file</li>
-            <li>View documents in an embedded iframe</li>
-            <li>Automatically refresh the document list at regular intervals</li>
-        </ul>
+        <p>Disclaimer: The events depicted
+        in this workshop are entirely
+        fictional. Any resemblance to
+        actual persons, living or dead,
+        actual events or outbreaks before
+        or afterwards is definitely entirely
+        coincidental.</p>
     </div>
     
-    <p><em>Last updated: <span id="timestamp"></span></em></p>
+    <div class="footer">
+        <p>Designed and created by: Sam Wilkinson, Áine O'Toole, Emma Hodcroft, Nick Loman and Andrew Rambaut</p>
+        <p><a href="https://artic.network" target="_blank">&copy; 2022-2025, The ARTIC Network</a> | Creative Commons CC-BY 4.0 International License.</p>
+    </div>
+    
+  <p><em>Last updated: <span id="timestamp"></span></em></p>
     
     <script>
         document.getElementById('timestamp').textContent = new Date().toLocaleString();
