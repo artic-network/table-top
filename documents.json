@@ -56,13 +56,6 @@
         "notes": "Results from the metagenomic sequencing of heavy metal concert cases."
     },
     {
-        "title": "Metagenomics - Controls",
-        "description": "Results: Metagenomic Sequencing of Heavy Metal Concert Controls.",
-        "day": 6,
-        "url": "documents/09_metagenomics_controls.html",
-        "notes": "Results from the metagenomic sequencing of heavy metal concert controls."
-    },
-    {
         "title": "SDPHL waste water",
         "description": "Waste Water Metagenomic sequencing - San Diego",
         "day": 7,
