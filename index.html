@@ -31,6 +31,33 @@
             background: #ffffff;
             border-right: 1px solid #e9ecef;
         }
+        .navbar {
+            background-color: #005B68;
+        }
+        .navbar-brand {
+            padding-top: 0px;
+            padding-bottom: 0px;
+            padding-left: 0px;
+            margin-right: 0px;
+        }
+        .artic-title {
+            color: #F7EECA;
+            font-weight: 300;
+            padding-left: 16px;
+        }
+        .artic-subtitle {
+            color: #F7EECA !important;
+            font-weight: 100;
+            padding-left: 8px;
+        }
+        .artic-btn {
+            color: #F7EECA !important;
+            border-color: #F7EECA !important;
+        }
+        .artic-btn:hover {
+            background-color: #F7EECA !important;
+            color: #005B68 !important;
+        }
         /* .table-row {
             border-radius: 16px;
             border: 1px solid #6c757d;
@@ -97,17 +124,18 @@
 
     <div class="app-root">
         <!-- Top navbar -->
-        <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
+        <nav class="navbar navbar-expand-lg navbar-light border-bottom">
             <div class="container-fluid">
                 <a class="navbar-brand d-flex align-items-center" href="#">
-                    <i class="bi bi-file-earmark-text-fill fs-4 text-success me-2"></i>
-                    <span class="fw-semibold">ARTIC Network</span>
-                    <small class="text-muted ms-2">Outbreak Response Team | Real-time Data Console</small>
+                    <img src="assets/artic-logo-small.svg" alt="ARTIC Network Logo" width="64" height="64"/>
+                    <!-- <i class="bi bi-file-earmark-text-fill fs-4 text-success me-2"></i> -->
+                    <span class="artic-title fw-semibold">ARTIC Network</span>
+                    <small class="artic-subtitle text-muted ms-2">Outbreak Response Team | Real-time Data Console</small>
                 </a>
 
                 <div class="d-flex align-items-center gap-2">
-                    <div id="status" class="status-badge badge rounded-pill">Initializing...</div>
-                    <button id="refreshBtn" class="btn btn-outline-secondary btn-sm" title="Refresh"><i class="bi bi-arrow-clockwise"></i></button>
+                    <div id="status" class="artic-subtitle status-badge badge rounded-pill">Initializing...</div>
+                    <button id="refreshBtn" class="artic-btn btn btn-outline-secondary btn-sm" title="Refresh"><i class="bi bi-arrow-clockwise"></i></button>
                 </div>
             </div>
         </nav>
@@ -350,7 +378,7 @@
 
             updateStatus(message, className = '') {
                 this.statusElement.textContent = message;
-                this.statusElement.className = 'status-badge badge rounded-pill';
+                this.statusElement.className = 'artic-subtitle status-badge badge rounded-pill';
                 if (className) this.statusElement.classList.add(className);
             }
 
