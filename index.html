@@ -31,6 +31,10 @@
             background: #ffffff;
             border-right: 1px solid #e9ecef;
         }
+        .table-new {
+            border-left: 8px solid #902828;
+            background: #e8c6c6;
+        }
         .doc-title {
             font-weight: 600;
         }
@@ -167,7 +171,7 @@
                 this.documents = [];
                 this.activeIndex = -1;
                 this.pollTimer = null;
-                this.currentDay = 20;
+                this.currentDay = 8;
 
                 // Elements
                 this.tableBody = document.querySelector('#documentTable tbody');
@@ -253,6 +257,7 @@
                     const tr = document.createElement('tr');
                     tr.setAttribute('data-index', idx);
                     if (idx === this.activeIndex) tr.classList.add('table-primary');
+                    if (doc.day === this.currentDay) tr.classList.add('table-new');
 
                     const tdDoc = document.createElement('td');
 
