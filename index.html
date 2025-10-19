@@ -241,7 +241,7 @@
                 }
 
                 this.tableBody.innerHTML = '';
-                this.documents.forEach((doc, idx) => {
+                this.documents.reverse().forEach((doc, idx) => {
                     if (doc.day > this.currentDay) {
                         return;
                     }
