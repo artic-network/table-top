@@ -118,8 +118,6 @@
 <body>
     <script>
         const params = new URLSearchParams(window.location.search);
-        const startDate = params.get('date') || "2025-10-25";
-        console.log("Start date:", startDate);
     </script>
 
     <div class="app-root">
@@ -197,13 +195,20 @@
 
     <script>
         class DocumentViewer {
-            constructor(jsonUrl, pollInterval = 30000) {
-                this.jsonUrl = jsonUrl;
+            constructor(documentListUrl, settingsUrl, statusUrl, statpollInterval = 30000) {
+                this.documentListUrl = documentListUrl;
+                this.settingsUrl = settingsUrl;
+                this.statusUrl = statusUrl;
                 this.pollInterval = pollInterval;
                 this.documents = [];
                 this.activeIndex = -1;
                 this.pollTimer = null;
-                this.currentDay = 9;
+
+                this.title = "ARTIC Tabletop Exercise";
+                this.location = "A room.";
+                this.description = "An outbreak response exercise.";
+                this.startDate = "2025-01-01";
+                this.currentDay = 0;
 
                 // Elements
                 this.tableBody = document.querySelector('#documentTable tbody');
@@ -223,7 +228,16 @@
 
             init() {
                 this.intervalLabel.textContent = Math.round(this.pollInterval / 1000) + 's';
+                this.loadSettings();
+                console.log("Settings: ", {
+                    title: this.title,
+                    location: this.location,
+                    description: this.description,
+                    startDate: this.startDate
+                });
                 this.loadDocuments();
+                this.loadStatus();
+                this.renderDocumentList();
                 this.startPolling();
                 this.attachUI();
             }
@@ -237,8 +251,8 @@
 
             async loadDocuments() {
                 try {
-                    this.updateStatus('Loading...', 'loading');
-                    const response = await fetch(this.jsonUrl);
+                    this.updateStatus('Loading document list...', 'loading');
+                    const response = await fetch(this.documentListUrl);
                     if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
                     const data = await response.json();
                     if (!Array.isArray(data)) throw new Error('Invalid JSON format: expected an array');
@@ -247,7 +261,7 @@
                     this.documents.forEach((doc, idx) => {
                         if (doc.day != 0) {
                             let day = (doc.day || `${idx + 1}`);
-                            let date = new Date(startDate);
+                            let date = new Date(this.startDate);
                             date.setDate(date.getDate() + day);
                             doc.date = date.toISOString().split('T')[0];
                         } else {
@@ -255,13 +269,54 @@
                         }
                     });
 
-                    this.renderDocumentList();
                     this.updateStatus(`Last updated: ${new Date().toLocaleTimeString()}`);
                 } catch (err) {
                     console.error(err);
                     this.showError(`Failed to load documents: ${err.message}`);
                     this.updateStatus('Error loading documents', 'error');
                 }
+            }
+
+            async loadSettings() {
+                try {
+                    this.updateStatus('Loading settings...', 'loading');
+                    const response = await fetch(this.settingsUrl);
+                    if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+                    const data = await response.json();
+                    this.title = data.title;
+                    this.location = data.location;
+                    this.description = data.description;
+                    this.startDate = data.date;
+
+                    this.updateStatus(`Last updated: ${new Date().toLocaleTimeString()}`);
+                } catch (err) {
+                    console.error(err);
+                    this.showError(`Failed to load settings: ${err.message}`);
+                    this.updateStatus('Error loading setting', 'error');
+                }
+                console.log("DocumentViewer initialized with:", {
+                    settingsUrl: this.settingsUrl,
+                    documentListUrl: this.documentListUrl,
+                    statusUrl: this.statusUrl,
+                    pollInterval: this.pollInterval
+                });
+
+            }
+
+            async loadStatus() {
+                try {
+                    const response = await fetch(this.statusUrl);
+                    if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+                    const data = await response.json();
+                    this.currentDay = data.day;
+
+                    this.renderDocumentList();
+                    this.updateStatus(`Last updated: ${new Date().toLocaleTimeString()}`);
+                } catch (err) {
+                    console.error(err);
+                    this.showError(`Failed to load status: ${err.message}`);
+                }
+                console.log("Current day: ", this.currentDay);
             }
 
             renderDocumentList(filter = '') {
@@ -384,7 +439,7 @@
 
             startPolling() {
                 if (this.pollTimer) clearInterval(this.pollTimer);
-                this.pollTimer = setInterval(() => this.loadDocuments(), this.pollInterval);
+                this.pollTimer = setInterval(() => this.loadStatus(), this.pollInterval);
             }
 
             stopPolling() {
@@ -404,11 +459,13 @@
 
         // Initialization
         const urlParams = new URLSearchParams(window.location.search);
-        const jsonUrl = urlParams.get('json') || 'documents.json';
+        const documentListUrl = urlParams.get('docs') || 'documents.json';
+        const settingsUrl = urlParams.get('settings') || 'settings.json';
+        const statusUrl = urlParams.get('status') || 'play.json';
         const pollInterval = parseInt(urlParams.get('interval')) || 30000;
 
         // Create viewer
-        const viewer = new DocumentViewer(jsonUrl, pollInterval);
+        const viewer = new DocumentViewer(documentListUrl, settingsUrl, statusUrl, pollInterval);
     </script>
 </body>
 </html>
