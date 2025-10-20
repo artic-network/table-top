@@ -209,6 +209,7 @@
                 this.description = "An outbreak response exercise.";
                 this.startDate = "2025-01-01";
                 this.currentDay = 0;
+                this.newDay = true;
 
                 // Elements
                 this.tableBody = document.querySelector('#documentTable tbody');
@@ -269,6 +270,7 @@
                         }
                     });
 
+                    this.documents = this.documents.reverse();
                     this.updateStatus(`Last updated: ${new Date().toLocaleTimeString()}`);
                 } catch (err) {
                     console.error(err);
@@ -308,7 +310,12 @@
                     const response = await fetch(this.statusUrl);
                     if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
                     const data = await response.json();
-                    this.currentDay = data.day;
+                    if (data.day !== this.currentDay) {
+                        this.currentDay = data.day;
+                        this.newDay = true;
+                    } else {
+                        this.newDay = false;
+                    }
 
                     this.renderDocumentList();
                     this.updateStatus(`Last updated: ${new Date().toLocaleTimeString()}`);
@@ -328,7 +335,7 @@
                 }
 
                 this.tableBody.innerHTML = '';
-                this.documents.reverse().forEach((doc, idx) => {
+                this.documents.forEach((doc, idx) => {
                     if (doc.day > this.currentDay) {
                         return;
                     }
@@ -382,6 +389,9 @@
                     // tr.appendChild(tdDesc);
 
                     tr.addEventListener('click', (e) => this.displayDocument(idx, e.currentTarget));
+                    if (this.newDay && doc.day === this.currentDay) {
+                        this.displayDocument(idx, tdDoc);
+                    }
 
                     rows.push(tr);
                 });
@@ -462,7 +472,7 @@
         const documentListUrl = urlParams.get('docs') || 'documents.json';
         const settingsUrl = urlParams.get('settings') || 'settings.json';
         const statusUrl = urlParams.get('status') || 'play.json';
-        const pollInterval = parseInt(urlParams.get('interval')) || 30000;
+        const pollInterval = parseInt(urlParams.get('interval')) || 5000;
 
         // Create viewer
         const viewer = new DocumentViewer(documentListUrl, settingsUrl, statusUrl, pollInterval);
