@@ -65,22 +65,29 @@
     {
         "title": "ACDC SitRep #3",
         "description": "Situation Report: Undiagnosed Febrile Illness — Southern California.",
-        "day": 5,
+        "day": 8,
         "url": "documents/11_acdc_sitrep3.html",
+        "notes": "Cases of fever and hepatitis associated with a heavy metal rock concert spread to additional locations."
+    },    
+    {
+        "title": "ACDC SitRep #4",
+        "description": "Situation Report: Undiagnosed Febrile Illness — Southern California.",
+        "day": 8,
+        "url": "documents/12_acdc_sitrep4.html",
         "notes": "Cases of fever and hepatitis associated with a heavy metal rock concert spread to additional locations."
     },    
     {
         "title": "WHO DON",
         "description": "Disease Outbreak News — [PLACEHOLDER TITLE]",
-        "day": 8,
-        "url": "documents/12_who_don.html",
+        "day": 9,
+        "url": "documents/13_who_don.html",
         "notes": "[PLACEHOLDER NOTES]"
     },
     {
         "title": "Thread on naming novel virus",
         "description": "Have you seen this social media thread discussing names for the novel virus?",
-        "day": 8,
-        "url": "documents/13_social_media_thread.html",
+        "day": 9,
+        "url": "documents/14_social_media_thread.html",
         "notes": "A social media thread discussing potential names for the novel virus."
     }   
 ]
