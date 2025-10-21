@@ -1,0 +1,80 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Get Object (cross-origin)</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 2rem; }
+      #box { padding: 1rem; border: 1px solid #ddd; background: #fafafa; width: 80%; }
+      .meta { color: #666; margin-top: 0.5rem; font-size: 0.9rem; }
+      .field { margin: 6px 0; }
+      .label { font-weight: bold; width: 80px; display: inline-block; }
+    </style>
+  </head>
+  <body>
+    <h1>Current server object</h1>
+
+    <!-- Edit SERVER_ORIGIN to point to your server (scheme + host + optional port) -->
+    <script>
+      const SERVER_ORIGIN = 'http://localhost:3000';
+      // const SERVER_ORIGIN = 'http://tree.bio.ed.ac.uk:3000';
+    </script>
+
+    <div id="box">
+      <div class="field"><span class="label">Text:</span><span id="textVal">Loading…</span></div>
+      <div class="field"><span class="label">Count:</span><span id="countVal">Loading…</span></div>
+      <div class="field"><small id="sourceInfo">source: unknown</small></div>
+    </div>
+
+    <div class="meta">Real-time updates with socket.io. Polls every 10s as a fallback.</div>
+
+    <!-- Load socket.io client from CDN -->
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+
+    <script>
+      const textEl = document.getElementById('textVal');
+      const countEl = document.getElementById('countVal');
+      const sourceInfo = document.getElementById('sourceInfo');
+
+      function updateDisplay(obj, source) {
+        textEl.textContent = (obj && typeof obj.text === 'string') ? obj.text : '(empty)';
+        countEl.textContent = (obj && typeof obj.count === 'number') ? obj.count : '(n/a)';
+        sourceInfo.textContent = 'source: ' + (source || 'unknown');
+      }
+
+      // Connect explicitly to the server origin (cross-origin)
+      const socket = io(SERVER_ORIGIN, { withCredentials: true });
+
+      socket.on('valueUpdated', (obj) => {
+        updateDisplay(obj, 'socket');
+      });
+
+      socket.on('connect_error', (err) => {
+        console.error('Socket connect error:', err);
+      });
+
+      // Polling fallback: fetch /value every 10 seconds
+      async function fetchValue() {
+        try {
+          const res = await fetch(SERVER_ORIGIN + '/value', { cache: 'no-store', credentials: 'include' });
+          if (!res.ok) throw new Error('Bad response');
+          const json = await res.json();
+          if (json && typeof json.value === 'object') {
+            // Only update if different (quick stringified compare)
+            const current = { text: textEl.textContent, count: Number(countEl.textContent) };
+            const fetched = json.value;
+            if (JSON.stringify(current) !== JSON.stringify({ text: fetched.text, count: fetched.count })) {
+              updateDisplay(fetched, 'poll');
+            }
+          }
+        } catch (err) {
+          console.error('Polling error:', err);
+        }
+      }
+
+      // Initial fetch (in case socket didn't deliver promptly)
+      fetchValue();
+      setInterval(fetchValue, 10000);
+    </script>
+  </body>
+</html>

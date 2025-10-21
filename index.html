@@ -7,6 +7,7 @@
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-" crossorigin="anonymous">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
     <style>
         html, body {
             height: 100%;
@@ -210,6 +211,8 @@
                 this.startDate = "2025-01-01";
                 this.currentDay = 0;
                 this.newDay = true;
+                // this.serverHost = "http://localhost:3000";
+                this.serverHost = "http://tree.bio.ed.ac.uk:3000";
 
                 // Elements
                 this.tableBody = document.querySelector('#documentTable tbody');
@@ -234,12 +237,17 @@
                     title: this.title,
                     location: this.location,
                     description: this.description,
-                    startDate: this.startDate
+                    startDate: this.startDate,
+                    serverHost: this.serverHost,
                 });
                 this.loadDocuments();
-                this.loadStatus();
+
+                // use one or another
+                // this.loadStatus();
+                this.connectServer(this.serverHost);
+
                 this.renderDocumentList();
-                this.startPolling();
+                // this.startPolling();
                 this.attachUI();
             }
 
@@ -248,6 +256,38 @@
                 this.searchInput.addEventListener('input', (e) => this.filterList(e.target.value));
                 this.clearSearchBtn.addEventListener('click', () => { this.searchInput.value = ''; this.filterList(''); });
                 this.openBtn.addEventListener('click', () => this.openActiveInNewTab());
+            }
+
+            connectServer(serverHost) {
+                console.log("Connecting to server at:", serverHost);
+                const socket = io(serverHost, { withCredentials: true });
+
+                socket.on('valueUpdated', (obj) => {
+                    this.updateCurrentDay(obj.day);
+                });
+
+                socket.on('connect_error', (err) => {
+                    console.error('Socket connect error:', err);
+                });
+
+
+                // Initial fetch (in case socket didn't deliver promptly)
+                this.fetchValue();
+                setInterval(() => this.fetchValue(), 10000);
+
+            }
+
+            async fetchValue() {
+                try {
+                    const res = await fetch(this.serverHost + '/value', { cache: 'no-store', credentials: 'include' });
+                    if (!res.ok) throw new Error('Bad response');
+                    const json = await res.json();
+                    if (json && typeof json.value === 'object') {
+                        this.updateCurrentDay(json.value.day);
+                    }
+                } catch (err) {
+                    console.error('Polling error:', err);
+                }
             }
 
             async loadDocuments() {
@@ -289,6 +329,7 @@
                     this.location = data.location;
                     this.description = data.description;
                     this.startDate = data.date;
+                    this.serverHost = data.serverHost;
 
                     this.updateStatus(`Last updated: ${new Date().toLocaleTimeString()}`);
                 } catch (err) {
@@ -310,21 +351,25 @@
                     const response = await fetch(this.statusUrl);
                     if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
                     const data = await response.json();
-                    if (data.day !== this.currentDay) {
-                        this.currentDay = data.day;
-                        this.newDay = true;
-                    } else {
-                        this.newDay = false;
-                    }
-
-                    this.renderDocumentList();
-                    this.updateStatus(`Last updated: ${new Date().toLocaleTimeString()}`);
+                    this.updateCurrentDay(data.day);
                 } catch (err) {
                     console.error(err);
                     this.showError(`Failed to load status: ${err.message}`);
                 }
-                console.log("Current day: ", this.currentDay);
             }
+
+            updateCurrentDay(day) {
+                if (day !== this.currentDay) {
+                    this.currentDay = day;
+                    this.newDay = true;
+                    console.log("New day:", day);
+                } else {
+                    this.newDay = false;
+                }
+                this.renderDocumentList();
+                this.updateStatus(`Last updated: ${new Date().toLocaleTimeString()}`);
+            }
+
 
             renderDocumentList(filter = '') {
                 const rows = [];
@@ -340,7 +385,7 @@
                         return;
                     }
                     const day = (doc.day || `${idx + 1}`);
-                    console.log("Document:", doc.title, " Date:", doc.date);
+                    // console.log("Document:", doc.title, " Date:", doc.date);
 
                     const title = (doc.title || doc.description || `Document ${idx + 1}`);
                     const description = (doc.description || doc.title || '');

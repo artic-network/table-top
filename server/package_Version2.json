@@ -1,0 +1,14 @@
+{
+  "name": "simple-socket-server",
+  "version": "1.0.0",
+  "description": "Demo: store a string on server, set from one page and display from another using socket.io with polling fallback.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.8.1",
+    "cors": "^2.8.5"
+  }
+}

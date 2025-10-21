@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>ARTIC Network - Table Top Exercise Control Panel</title>
+    <title>ARTIC Network - Table Top Control Centre</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-" crossorigin="anonymous">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
     <style>
         html, body {
             height: 100%;
@@ -31,13 +32,40 @@
             background: #ffffff;
             border-right: 1px solid #e9ecef;
         }
+        .navbar {
+            background-color: #005B68;
+        }
+        .navbar-brand {
+            padding-top: 0px;
+            padding-bottom: 0px;
+            padding-left: 0px;
+            margin-right: 0px;
+        }
+        .artic-title {
+            color: #F7EECA;
+            font-weight: 300;
+            padding-left: 16px;
+        }
+        .artic-subtitle {
+            color: #F7EECA !important;
+            font-weight: 100;
+            padding-left: 8px;
+        }
+        .artic-btn {
+            color: #F7EECA !important;
+            border-color: #F7EECA !important;
+        }
+        .artic-btn:hover {
+            background-color: #F7EECA !important;
+            color: #005B68 !important;
+        }
         /* .table-row {
             border-radius: 16px;
             border: 1px solid #6c757d;
         } */
         .table-new {
             border-left: 16px solid #902828;
-            background: #e8c6c6;
+            /* background: #e8c6c6; */
         }
         .doc-title {
             font-weight: 600;
@@ -91,23 +119,22 @@
 <body>
     <script>
         const params = new URLSearchParams(window.location.search);
-        const startDate = params.get('date') || "2025-10-25";
-        console.log("Start date:", startDate);
     </script>
 
     <div class="app-root">
         <!-- Top navbar -->
-        <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
+        <nav class="navbar navbar-expand-lg navbar-light border-bottom">
             <div class="container-fluid">
-                <a class="navbar-brand d-flex align-items-center" href="#">
-                    <i class="bi bi-file-earmark-text-fill fs-4 text-success me-2"></i>
-                    <span class="fw-semibold">ARTIC Network</span>
-                    <small class="text-muted ms-2">Table Top Exercise Control Panel</small>
+                <a class="navbar-brand d-flex align-items-center" href="https://artic.network" target="_blank" rel="noopener">
+                    <img src="assets/artic-logo-small.svg" alt="ARTIC Network Logo" width="64" height="64"/>
+                    <!-- <i class="bi bi-file-earmark-text-fill fs-4 text-success me-2"></i> -->
+                    <span class="artic-title fw-semibold">ARTIC Network</span>
+                    <small class="artic-subtitle text-muted ms-2">Table Top Control Centre</small>
                 </a>
 
                 <div class="d-flex align-items-center gap-2">
-                    <div id="status" class="status-badge badge rounded-pill">Initializing...</div>
-                    <button id="refreshBtn" class="btn btn-outline-secondary btn-sm" title="Refresh"><i class="bi bi-arrow-clockwise"></i></button>
+                    <div id="status" class="artic-subtitle status-badge badge rounded-pill">Initializing...</div>
+                    <button id="refreshBtn" class="artic-btn btn btn-outline-secondary btn-sm" title="Refresh"><i class="bi bi-arrow-clockwise"></i></button>
                 </div>
             </div>
         </nav>
@@ -146,7 +173,23 @@
 
                 <!-- Content -->
                 <section class="col content-area d-flex flex-column">
-                    <div class="p-3 border-bottom d-flex align-items-center justify-content-between">
+                     <div class="p-3 border-bottom d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-2">
+                            <button id="pushDocument" class="btn btn-outline-primary btn-sm" disabled><i class="bi bi-box-arrow-up-right"></i> Push Document</button>
+                        </div>
+                        <div>
+                            <h6 class="mb-0" id="currentStatus">Select a document</h6>
+                            <small id="documentStatus" class="text-muted">Click any row on the left to preview the document</small>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <button id="resetToStart" class="btn btn-outline-primary btn-sm" disabled><i class="bi bi-box-arrow-up-right"></i> Reset to start</button>
+                        </div>
+                    </div>
+
+                   <div class="p-3 border-bottom d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-2">
+                            <button id="pushDocument" class="btn btn-outline-primary btn-sm" disabled><i class="bi bi-box-arrow-up-right"></i> Push Document</button>
+                        </div>
                         <div>
                             <h6 class="mb-0" id="docTitle">Select a document</h6>
                             <small id="docSubtitle" class="text-muted">Click any row on the left to preview the document</small>
@@ -156,9 +199,9 @@
                         </div>
                     </div>
 
-                    <!-- <div id="contentArea" class="flex-fill position-relative">
+                    <div id="contentArea" class="flex-fill position-relative">
                         <div class="no-content-center" id="noContent">Select a document from the list to view it here</div>
-                    </div> -->
+                    </div>
                 </section>
             </div>
         </div>
@@ -169,18 +212,31 @@
 
     <script>
         class DocumentViewer {
-            constructor(jsonUrl, pollInterval = 30000) {
-                this.jsonUrl = jsonUrl;
+            constructor(documentListUrl, settingsUrl, statusUrl, statpollInterval = 30000) {
+                this.documentListUrl = documentListUrl;
+                this.settingsUrl = settingsUrl;
+                this.statusUrl = statusUrl;
                 this.pollInterval = pollInterval;
                 this.documents = [];
                 this.activeIndex = -1;
                 this.pollTimer = null;
-                this.currentDay = 8;
+
+                this.title = "ARTIC Tabletop Exercise";
+                this.location = "A room.";
+                this.description = "An outbreak response exercise.";
+                this.startDate = "2025-01-01";
+                this.currentDay = 0;
+                this.newDay = true;
+                this.serverHost = "http://localhost:3000";
 
                 // Elements
                 this.tableBody = document.querySelector('#documentTable tbody');
                 this.contentArea = document.getElementById('contentArea');
                 this.statusElement = document.getElementById('status');
+                this.currentStatusElement = document.getElementById('currentStatus');
+                this.documentStatusElement = document.getElementById('documentStatus');
+                this.pushDocumentBtn = document.getElementById('pushDocument');
+                this.resetToStartBtn = document.getElementById('resetToStart');
                 this.titleElement = document.getElementById('docTitle');
                 this.subtitleElement = document.getElementById('docSubtitle');
                 this.openBtn = document.getElementById('openNewTab');
@@ -195,8 +251,22 @@
 
             init() {
                 this.intervalLabel.textContent = Math.round(this.pollInterval / 1000) + 's';
+                this.loadSettings();
+                console.log("Settings: ", {
+                    title: this.title,
+                    location: this.location,
+                    description: this.description,
+                    startDate: this.startDate,
+                    serverHost: this.serverHost,
+                });
                 this.loadDocuments();
-                this.startPolling();
+
+                // use one or another
+                // this.loadStatus();
+                this.connectServer(this.serverHost);
+
+                this.renderDocumentList();
+                // this.startPolling();
                 this.attachUI();
             }
 
@@ -207,10 +277,42 @@
                 this.openBtn.addEventListener('click', () => this.openActiveInNewTab());
             }
 
+            connectServer(serverHost) {
+                console.log("Connecting to server at:", serverHost);
+                const socket = io(serverHost, { withCredentials: true });
+
+                socket.on('valueUpdated', (obj) => {
+                    this.updateCurrentDay(obj.day);
+                });
+
+                socket.on('connect_error', (err) => {
+                    console.error('Socket connect error:', err);
+                });
+
+
+                // Initial fetch (in case socket didn't deliver promptly)
+                this.fetchValue();
+                setInterval(() => this.fetchValue(), 10000);
+
+            }
+
+            async fetchValue() {
+                try {
+                    const res = await fetch(this.serverHost + '/value', { cache: 'no-store', credentials: 'include' });
+                    if (!res.ok) throw new Error('Bad response');
+                    const json = await res.json();
+                    if (json && typeof json.value === 'object') {
+                        this.updateCurrentDay(json.value.day);
+                    }
+                } catch (err) {
+                    console.error('Polling error:', err);
+                }
+            }
+
             async loadDocuments() {
                 try {
-                    this.updateStatus('Loading...', 'loading');
-                    const response = await fetch(this.jsonUrl);
+                    this.updateStatus('Loading document list...', 'loading');
+                    const response = await fetch(this.documentListUrl);
                     if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
                     const data = await response.json();
                     if (!Array.isArray(data)) throw new Error('Invalid JSON format: expected an array');
@@ -219,7 +321,7 @@
                     this.documents.forEach((doc, idx) => {
                         if (doc.day != 0) {
                             let day = (doc.day || `${idx + 1}`);
-                            let date = new Date(startDate);
+                            let date = new Date(this.startDate);
                             date.setDate(date.getDate() + day);
                             doc.date = date.toISOString().split('T')[0];
                         } else {
@@ -227,7 +329,7 @@
                         }
                     });
 
-                    this.renderDocumentList();
+                    // this.documents = this.documents.reverse();
                     this.updateStatus(`Last updated: ${new Date().toLocaleTimeString()}`);
                 } catch (err) {
                     console.error(err);
@@ -235,6 +337,58 @@
                     this.updateStatus('Error loading documents', 'error');
                 }
             }
+
+            async loadSettings() {
+                try {
+                    this.updateStatus('Loading settings...', 'loading');
+                    const response = await fetch(this.settingsUrl);
+                    if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+                    const data = await response.json();
+                    this.title = data.title;
+                    this.location = data.location;
+                    this.description = data.description;
+                    this.startDate = data.date;
+                    this.serverHost = data.serverHost;
+
+                    this.updateStatus(`Last updated: ${new Date().toLocaleTimeString()}`);
+                } catch (err) {
+                    console.error(err);
+                    this.showError(`Failed to load settings: ${err.message}`);
+                    this.updateStatus('Error loading setting', 'error');
+                }
+                console.log("DocumentViewer initialized with:", {
+                    settingsUrl: this.settingsUrl,
+                    documentListUrl: this.documentListUrl,
+                    statusUrl: this.statusUrl,
+                    pollInterval: this.pollInterval
+                });
+
+            }
+
+            async loadStatus() {
+                try {
+                    const response = await fetch(this.statusUrl);
+                    if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+                    const data = await response.json();
+                    this.updateCurrentDay(data.day);
+                } catch (err) {
+                    console.error(err);
+                    this.showError(`Failed to load status: ${err.message}`);
+                }
+            }
+
+            updateCurrentDay(day) {
+                if (day !== this.currentDay) {
+                    this.currentDay = day;
+                    this.newDay = true;
+                    console.log("New day:", day);
+                } else {
+                    this.newDay = false;
+                }
+                this.renderDocumentList();
+                this.updateStatus(`Last updated: ${new Date().toLocaleTimeString()}`);
+            }
+
 
             renderDocumentList(filter = '') {
                 const rows = [];
@@ -245,9 +399,12 @@
                 }
 
                 this.tableBody.innerHTML = '';
-                this.documents.reverse().forEach((doc, idx) => {
+                this.documents.forEach((doc, idx) => {
+                    if (doc.day > this.currentDay) {
+                        return;
+                    }
                     const day = (doc.day || `${idx + 1}`);
-                    console.log("Document:", doc.title, " Date:", doc.date);
+                    // console.log("Document:", doc.title, " Date:", doc.date);
 
                     const title = (doc.title || doc.description || `Document ${idx + 1}`);
                     const description = (doc.description || doc.title || '');
@@ -296,6 +453,9 @@
                     // tr.appendChild(tdDesc);
 
                     tr.addEventListener('click', (e) => this.displayDocument(idx, e.currentTarget));
+                    if (this.newDay && doc.day === this.currentDay) {
+                        this.displayDocument(idx, tdDoc);
+                    }
 
                     rows.push(tr);
                 });
@@ -322,18 +482,23 @@
 
                 const url =  doc.url + (doc.url.includes('?') ? '&' : '?') + 'date=' + doc.date;
 
+                this.currentStatusElement.textContent = `Current day: ${currentDay}`;
+                this.documentStatusElement.textContent = `Document day: ${doc.day || (index + 1)}`;
+                this.openBtn.disabled = false;
+                this.openBtn.dataset.url = url;
+
                 this.titleElement.textContent = doc.title || doc.description || `Document ${index+1}`;
                 this.subtitleElement.textContent = doc.description || '';
                 this.openBtn.disabled = false;
                 this.openBtn.dataset.url = url;
 
                 // Show iframe
-                // this.contentArea.innerHTML = '';
-                // const iframe = document.createElement('iframe');
-                // iframe.className = 'viewer-iframe';
-                // iframe.src = url;
-                // iframe.title = this.escapeHtml(doc.title || doc.description || 'Document');
-                // this.contentArea.appendChild(iframe);
+                this.contentArea.innerHTML = '';
+                const iframe = document.createElement('iframe');
+                iframe.className = 'viewer-iframe';
+                iframe.src = url;
+                iframe.title = this.escapeHtml(doc.title || doc.description || 'Document');
+                this.contentArea.appendChild(iframe);
             }
 
             openActiveInNewTab() {
@@ -347,13 +512,13 @@
 
             updateStatus(message, className = '') {
                 this.statusElement.textContent = message;
-                this.statusElement.className = 'status-badge badge rounded-pill';
+                this.statusElement.className = 'artic-subtitle status-badge badge rounded-pill';
                 if (className) this.statusElement.classList.add(className);
             }
 
             startPolling() {
                 if (this.pollTimer) clearInterval(this.pollTimer);
-                this.pollTimer = setInterval(() => this.loadDocuments(), this.pollInterval);
+                this.pollTimer = setInterval(() => this.loadStatus(), this.pollInterval);
             }
 
             stopPolling() {
@@ -373,11 +538,13 @@
 
         // Initialization
         const urlParams = new URLSearchParams(window.location.search);
-        const jsonUrl = urlParams.get('json') || 'documents.json';
-        const pollInterval = parseInt(urlParams.get('interval')) || 30000;
+        const documentListUrl = urlParams.get('docs') || 'documents.json';
+        const settingsUrl = urlParams.get('settings') || 'settings.json';
+        const statusUrl = urlParams.get('status') || 'play.json';
+        const pollInterval = parseInt(urlParams.get('interval')) || 5000;
 
         // Create viewer
-        const viewer = new DocumentViewer(jsonUrl, pollInterval);
+        const viewer = new DocumentViewer(documentListUrl, settingsUrl, statusUrl, pollInterval);
     </script>
 </body>
 </html>
