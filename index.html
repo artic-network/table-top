@@ -348,10 +348,12 @@
 
             async loadStatus() {
                 try {
+                    console.log("Loaded from:", this.statusUrl);
                     const response = await fetch(this.statusUrl);
                     if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
                     const data = await response.json();
                     this.updateCurrentDay(data.day);
+                    console.log("Loaded status:", data);
                 } catch (err) {
                     console.error(err);
                     this.showError(`Failed to load status: ${err.message}`);
