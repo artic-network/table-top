@@ -212,7 +212,7 @@
                 this.currentDay = 0;
                 this.newDay = true;
                 // this.serverHost = "http://localhost:3000";
-                this.serverHost = "https://tree.bio.ed.ac.uk:3000";
+                // this.serverHost = "https://tree.bio.ed.ac.uk:3000";
 
                 // Elements
                 this.tableBody = document.querySelector('#documentTable tbody');
@@ -243,11 +243,11 @@
                 this.loadDocuments();
 
                 // use one or another
-                // this.loadStatus();
-                this.connectServer(this.serverHost);
+                this.loadStatus();
+                // this.connectServer(this.serverHost);
 
                 this.renderDocumentList();
-                // this.startPolling();
+                this.startPolling(); // polling for updated status json
                 this.attachUI();
             }
 
@@ -516,7 +516,7 @@
         const urlParams = new URLSearchParams(window.location.search);
         const documentListUrl = urlParams.get('docs') || 'documents.json';
         const settingsUrl = urlParams.get('settings') || 'settings.json';
-        const statusUrl = urlParams.get('status') || 'play.json';
+        const statusUrl = urlParams.get('status') || 'https://artic-example-datasets.s3.climb.ac.uk/tabletop_exercise/day.json';
         const pollInterval = parseInt(urlParams.get('interval')) || 5000;
 
         // Create viewer
