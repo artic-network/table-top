@@ -212,7 +212,7 @@
                 this.currentDay = 0;
                 this.newDay = true;
                 // this.serverHost = "http://localhost:3000";
-                // this.serverHost = "https://tree.bio.ed.ac.uk:3000";
+                this.serverHost = "http://tree.bio.ed.ac.uk:3000";
 
                 // Elements
                 this.tableBody = document.querySelector('#documentTable tbody');
@@ -243,11 +243,11 @@
                 this.loadDocuments();
 
                 // use one or another
-                this.loadStatus();
-                // this.connectServer(this.serverHost);
+                // this.loadStatus();
+                this.connectServer(this.serverHost);
 
                 this.renderDocumentList();
-                this.startPolling(); // polling for updated status json
+                // this.startPolling(); // polling for updated status json
                 this.attachUI();
             }
 
