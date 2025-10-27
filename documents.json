@@ -89,5 +89,12 @@
         "day": 9,
         "url": "documents/14_social_media_thread.html",
         "notes": "A social media thread discussing potential names for the novel virus."
+    },
+    {
+        "title": "Consensus genome sequences",
+        "description": "Initial assemblies of the L and S segmenets of the virus genome.",
+        "day": 10,
+        "url": "documents/15_consensus_genome.html",
+        "notes": "The initial consensus genomes for the two segments."
     }   
 ]
