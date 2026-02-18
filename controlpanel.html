@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>ARTIC Network - Outbreak Response Team | Data Console</title>
+    <title>ARTIC Network - Table Top Control Centre</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-" crossorigin="anonymous">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
@@ -129,7 +129,7 @@
                     <img src="assets/artic-logo-small.svg" alt="ARTIC Network Logo" width="64" height="64"/>
                     <!-- <i class="bi bi-file-earmark-text-fill fs-4 text-success me-2"></i> -->
                     <span class="artic-title fw-semibold">ARTIC Network</span>
-                    <small class="artic-subtitle text-muted ms-2">Outbreak Response Team | Real-time Data Console</small>
+                    <small class="artic-subtitle text-muted ms-2">Table Top Control Centre</small>
                 </a>
 
                 <div class="d-flex align-items-center gap-2">
@@ -173,7 +173,23 @@
 
                 <!-- Content -->
                 <section class="col content-area d-flex flex-column">
-                    <div class="p-3 border-bottom d-flex align-items-center justify-content-between">
+                     <div class="p-3 border-bottom d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-2">
+                            <button id="pushDocument" class="btn btn-outline-primary btn-sm" disabled><i class="bi bi-box-arrow-up-right"></i> Push Document</button>
+                        </div>
+                        <div>
+                            <h6 class="mb-0" id="currentStatus">Select a document</h6>
+                            <small id="documentStatus" class="text-muted">Click any row on the left to preview the document</small>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <button id="resetToStart" class="btn btn-outline-primary btn-sm" disabled><i class="bi bi-box-arrow-up-right"></i> Reset to start</button>
+                        </div>
+                    </div>
+
+                   <div class="p-3 border-bottom d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-2">
+                            <button id="pushDocument" class="btn btn-outline-primary btn-sm" disabled><i class="bi bi-box-arrow-up-right"></i> Push Document</button>
+                        </div>
                         <div>
                             <h6 class="mb-0" id="docTitle">Select a document</h6>
                             <small id="docSubtitle" class="text-muted">Click any row on the left to preview the document</small>
@@ -211,13 +227,16 @@
                 this.startDate = "2025-01-01";
                 this.currentDay = 0;
                 this.newDay = true;
-                // this.serverHost = "http://localhost:3000";
-                this.serverHost = "http://tree.bio.ed.ac.uk:3000";
+                this.serverHost = "http://localhost:3000";
 
                 // Elements
                 this.tableBody = document.querySelector('#documentTable tbody');
                 this.contentArea = document.getElementById('contentArea');
                 this.statusElement = document.getElementById('status');
+                this.currentStatusElement = document.getElementById('currentStatus');
+                this.documentStatusElement = document.getElementById('documentStatus');
+                this.pushDocumentBtn = document.getElementById('pushDocument');
+                this.resetToStartBtn = document.getElementById('resetToStart');
                 this.titleElement = document.getElementById('docTitle');
                 this.subtitleElement = document.getElementById('docSubtitle');
                 this.openBtn = document.getElementById('openNewTab');
@@ -247,7 +266,7 @@
                 this.connectServer(this.serverHost);
 
                 this.renderDocumentList();
-                // this.startPolling(); // polling for updated status json
+                // this.startPolling();
                 this.attachUI();
             }
 
@@ -310,7 +329,7 @@
                         }
                     });
 
-                    this.documents = this.documents.reverse();
+                    // this.documents = this.documents.reverse();
                     this.updateStatus(`Last updated: ${new Date().toLocaleTimeString()}`);
                 } catch (err) {
                     console.error(err);
@@ -348,12 +367,10 @@
 
             async loadStatus() {
                 try {
-                    console.log("Loaded from:", this.statusUrl);
                     const response = await fetch(this.statusUrl);
                     if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
                     const data = await response.json();
                     this.updateCurrentDay(data.day);
-                    console.log("Loaded status:", data);
                 } catch (err) {
                     console.error(err);
                     this.showError(`Failed to load status: ${err.message}`);
@@ -465,6 +482,11 @@
 
                 const url =  doc.url + (doc.url.includes('?') ? '&' : '?') + 'date=' + doc.date;
 
+                this.currentStatusElement.textContent = `Current day: ${currentDay}`;
+                this.documentStatusElement.textContent = `Document day: ${doc.day || (index + 1)}`;
+                this.openBtn.disabled = false;
+                this.openBtn.dataset.url = url;
+
                 this.titleElement.textContent = doc.title || doc.description || `Document ${index+1}`;
                 this.subtitleElement.textContent = doc.description || '';
                 this.openBtn.disabled = false;
@@ -518,7 +540,7 @@
         const urlParams = new URLSearchParams(window.location.search);
         const documentListUrl = urlParams.get('docs') || 'documents.json';
         const settingsUrl = urlParams.get('settings') || 'settings.json';
-        const statusUrl = urlParams.get('status') || 'https://artic-example-datasets.s3.climb.ac.uk/tabletop_exercise/day.json';
+        const statusUrl = urlParams.get('status') || 'play.json';
         const pollInterval = parseInt(urlParams.get('interval')) || 5000;
 
         // Create viewer

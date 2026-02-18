@@ -1,0 +1,101 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Set Object (cross-origin)</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 2rem; }
+      input[type="text"], input[type="number"] { padding: 0.5rem; margin-right: 0.5rem; }
+      button { padding: 0.5rem 1rem; }
+      .status { margin-top: 1rem; color: green; }
+      label { display: inline-block; width: 60px; }
+    </style>
+  </head>
+  <body>
+    <h1>Set the server object</h1>
+
+    <!-- Edit SERVER_ORIGIN to point to your server (scheme + host + optional port) -->
+    <script>
+      // const SERVER_ORIGIN = 'https://localhost:3000';
+      const SERVER_ORIGIN = 'http://tree.bio.ed.ac.uk:3000';
+    </script>
+
+    <form id="setForm">
+      <div>
+        <label for="textInput">Text</label>
+        <input id="textInput" type="text" placeholder="Enter string" autocomplete="off" />
+      </div>
+      <div style="margin-top:8px;">
+        <label for="currentDay">Day</label>
+        <input id="currentDay" type="number" placeholder="0" />
+      </div>
+      <div style="margin-top:12px;">
+        <button type="submit">Send</button>
+      </div>
+    </form>
+
+    <div class="status" id="status"></div>
+
+    <!-- Load socket.io client from CDN -->
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+
+    <script>
+      (function () {
+        const status = document.getElementById('status');
+        const form = document.getElementById('setForm');
+        const textInput = document.getElementById('textInput');
+        const currentDayInput = document.getElementById('currentDay');
+
+        // Connect explicitly to the server origin (cross-origin)
+        const socket = io(SERVER_ORIGIN, { withCredentials: true });
+
+        form.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const text = textInput.value;
+          const currentDayVal = currentDayInput.value;
+          const currentDay = currentDayVal === '' ? undefined : parseInt(currentDayVal, 10);
+
+          
+          // Build object to send (only include fields user provided)
+          const payload = {};
+          if (text !== '') payload.text = text;
+          if (currentDay !== undefined && !isNaN(currentDay)) payload.day = currentDay;
+        
+          // Real-time update via socket
+          socket.emit('setValue', payload);
+
+          // Backup REST POST (send partial object)
+          fetch(SERVER_ORIGIN + '/value', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(payload)
+          }).then(r => r.json())
+            .then(j => {
+              status.textContent = (j && j.ok) ? 'Object sent.' : 'Sent (no confirmation).';
+              setTimeout(() => status.textContent = '', 2000);
+            })
+            .catch(() => {
+              status.textContent = 'Network error while sending.';
+              setTimeout(() => status.textContent = '', 2000);
+            });
+
+          // Clear inputs (optional)
+          // textInput.value = '';
+          // countInput.value = '';
+        });
+
+        socket.on('valueUpdated', (obj) => {
+          status.textContent = 'Server object updated.';
+          setTimeout(() => status.textContent = '', 1500);
+        });
+
+        socket.on('connect_error', (err) => {
+          console.error('Socket connect error:', err);
+          status.textContent = 'Socket connect error';
+          setTimeout(() => status.textContent = '', 3000);
+        });
+      })();
+    </script>
+  </body>
+</html>

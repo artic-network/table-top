@@ -1,22 +1,100 @@
 [
     {
         "title": "Introduction",
-        "description": "Welcome document explaining the Frogspawn system",
-        "url": "sample1.html"
+        "description": "Welcome to the ARTIC Outbreak Response Exercise",
+        "day": 0,
+        "url": "documents/01_introduction.html",
+        "notes": "This document provides an overview of the exercise objectives and structure."
     },
     {
-        "title": "Training Scenario A",
-        "description": "Interactive training exercise with tasks and objectives",
-        "url": "sample2.html"
+        "title": "ACDC alert",
+        "description": "Undiagnosed febrile illness — San Diego Region.",
+        "day": 1,
+        "url": "documents/02_acdc_alert.html",
+        "notes": "An alert from the ACDC about a case of an undiagnosed febrile illness."
     },
     {
-        "title": "Reference Guide",
-        "description": "Quick reference guide with commands and procedures",
-        "url": "sample3.html"
+        "title": "Epidemiological investigation",
+        "description": "Results: Undiagnosed Febrile Illness — Enhanced Epidemiological Investigation.",
+        "day": 2,
+        "url": "documents/03_acdc_epidemiology.html",
+        "notes": "Results from the epidemiological investigation into the undiagnosed febrile illness."
     },
     {
-        "title": "GitHub",
-        "description": "External link example - GitHub homepage",
-        "url": "https://github.com"
-    }
+        "title": "Vir-Diag-3000-pro",
+        "description": "Results: Vir-Diag-3000-pro Hemorrhagic Fever Syndromic Panel.",
+        "day": 3,
+        "url": "documents/04_vir_diag.html",
+        "notes": "Results from the Vir-Diag-3000-pro panel testing."
+},
+    {
+        "title": "Metagenomic sequencing",
+        "description": "Results: Metagenomic Sequencing of Index Case.",
+        "day": 4,
+        "url": "documents/05_metagenomics_index.html",
+        "notes": "Metagenomic sequencing results from the index case."
+    },
+    {
+        "title": "ACDC SitRep #2",
+        "description": "Situation Report: Undiagnosed Febrile Illness — Southern California.",
+        "day": 5,
+        "url": "documents/06_acdc_sitrep2.html",
+        "notes": "The second situation report from ACDC regarding the undiagnosed febrile illness."
+    },    
+    {
+        "title": "Metagenomics - Pet shop",
+        "description": "Results: Environmental Metagenomic Sequencing of Pet Shop.",
+        "day": 6,
+        "url": "documents/07_metagenomics_petshop.html",
+        "notes": "Results from the environmental metagenomic sequencing of the pet shop."
+    },
+    {
+        "title": "Metagenomics - Concert",
+        "description": "Results: Metagenomic sequencing of heavy metal concert cases and matched controls.",
+        "day": 6,
+        "url": "documents/08_metagenomics_concert.html",
+        "notes": "Results from the metagenomic sequencing of heavy metal concert cases."
+    },
+    {
+        "title": "Waste water sequencing",
+        "description": "Results: SDPHL Waste Water Metagenomic sequencing - San Diego",
+        "day": 7,
+        "url": "documents/10_wastewater_report.html",
+        "notes": "Results from the waste water metagenomic sequencing in San Diego."
+    },
+    {
+        "title": "ACDC SitRep #3",
+        "description": "Situation Report: Undiagnosed Febrile Illness — Southern California.",
+        "day": 8,
+        "url": "documents/11_acdc_sitrep3.html",
+        "notes": "Cases of fever and hepatitis associated with a heavy metal rock concert spread to additional locations."
+    },    
+    {
+        "title": "ACDC SitRep #4",
+        "description": "Situation Report: Undiagnosed Febrile Illness — Southern California.",
+        "day": 8,
+        "url": "documents/12_acdc_sitrep4.html",
+        "notes": "Cases of fever and hepatitis associated with a heavy metal rock concert spread to additional locations."
+    },    
+    {
+        "title": "WHO DON",
+        "description": "Disease Outbreak News — [PLACEHOLDER TITLE]",
+        "day": 9,
+        "url": "documents/13_who_don.html",
+        "notes": "[PLACEHOLDER NOTES]"
+    },
+    {
+        "title": "Thread on naming novel virus",
+        "description": "Have you seen this social media thread discussing names for the novel virus?",
+        "day": 9,
+        "url": "documents/14_social_media_thread.html",
+        "notes": "A social media thread discussing potential names for the novel virus."
+    },
+    {
+        "title": "Consensus genome sequences",
+        "description": "Initial assemblies of the L and S segmenets of the virus genome.",
+        "day": 10,
+        "url": "documents/15_consensus_genome.html",
+        "notes": "The initial consensus genomes for the two segments."
+    }   
 ]
