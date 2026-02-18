@@ -1,8 +1,0 @@
-Notes and tips
-
-Use /currentMessage as the canonical path so both pages read/write the same location.
-If you prefer to keep a history of messages instead of overwriting, use push() on a child list (e.g., /messages) instead of set().
-The example uses the modular Firebase SDK (v9) and ES modules via the CDN so it works on GitHub Pages without a build step.
-Replace the placeholder values in firebaseConfig with your project's real config.
-After deploying to GitHub Pages, open the two pages in separate tabs/devices. Press Send on control.html and you should see the update appear instantly in viewer.html (via realtime listener). The polling fallback ensures viewer still updates periodically if realtime connection is interrupted.
-
