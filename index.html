@@ -196,7 +196,7 @@
 
     <script>
         class DocumentViewer {
-            constructor(documentListUrl, settingsUrl, statusUrl, statpollInterval = 30000) {
+            constructor(documentListUrl, settingsUrl, statusUrl, pollInterval = 30000, initialDay = 0, dayFromUrl = false) {
                 this.documentListUrl = documentListUrl;
                 this.settingsUrl = settingsUrl;
                 this.statusUrl = statusUrl;
@@ -209,7 +209,8 @@
                 this.location = "A room.";
                 this.description = "An outbreak response exercise.";
                 this.startDate = "2025-01-01";
-                this.currentDay = 0;
+                this.currentDay = initialDay;
+                this.dayFromUrl = dayFromUrl;
                 this.newDay = true;
                 // this.serverHost = "http://localhost:3000";
                 this.serverHost = "http://tree.bio.ed.ac.uk:3000";
@@ -259,6 +260,12 @@
             }
 
             connectServer(serverHost) {
+                // Skip server connection if day was explicitly set via URL
+                if (this.dayFromUrl) {
+                    console.log("Day set via URL parameter, skipping server connection");
+                    return;
+                }
+
                 console.log("Connecting to server at:", serverHost);
                 const socket = io(serverHost, { withCredentials: true });
 
@@ -311,7 +318,7 @@
                     });
 
                     this.documents = this.documents.reverse();
-                    this.updateStatus(`Last updated: ${new Date().toLocaleTimeString()}`);
+                    this.updateCurrentDay(this.currentDay);
                 } catch (err) {
                     console.error(err);
                     this.showError(`Failed to load documents: ${err.message}`);
@@ -520,9 +527,12 @@
         const settingsUrl = urlParams.get('settings') || 'settings.json';
         const statusUrl = urlParams.get('status') || 'https://artic-example-datasets.s3.climb.ac.uk/tabletop_exercise/day.json';
         const pollInterval = parseInt(urlParams.get('interval')) || 5000;
+        const dayParam = urlParams.get('day');
+        const initialDay = dayParam !== null ? parseInt(dayParam) : 0;
+        const dayFromUrl = dayParam !== null;
 
         // Create viewer
-        const viewer = new DocumentViewer(documentListUrl, settingsUrl, statusUrl, pollInterval);
+        const viewer = new DocumentViewer(documentListUrl, settingsUrl, statusUrl, pollInterval, initialDay, dayFromUrl);
     </script>
 </body>
 </html>
