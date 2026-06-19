@@ -8,6 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-" crossorigin="anonymous">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+    <script src="js/jsonbin.js"></script>
     <style>
         html, body {
             height: 100%;
@@ -219,6 +220,8 @@
                 this.newDay = true;
                 // this.serverHost = "http://localhost:3000";
                 this.serverHost = "http://tree.bio.ed.ac.uk:3000";
+                this.jsonbinBinId = null;
+                this.jsonbinAccessKey = null;
 
                 // Elements
                 this.tableBody = document.querySelector('#documentTable tbody');
@@ -277,6 +280,15 @@
                     return;
                 }
 
+                // Prefer JSONBin polling when a bin is configured
+                if (this.jsonbinBinId) {
+                    console.log('Using JSONBin for day state, bin:', this.jsonbinBinId);
+                    this.fetchValue();
+                    this._pollTimer = setInterval(() => this.fetchValue(), this.pollInterval);
+                    return;
+                }
+
+                // Fall back to Socket.IO server
                 console.log("Connecting to server at:", serverHost);
                 const socket = io(serverHost, { withCredentials: true });
 
@@ -288,15 +300,20 @@
                     console.error('Socket connect error:', err);
                 });
 
-
                 // Initial fetch (in case socket didn't deliver promptly)
                 this.fetchValue();
                 setInterval(() => this.fetchValue(), 10000);
-
             }
 
             async fetchValue() {
                 try {
+                    if (this.jsonbinBinId) {
+                        const record = await jsonbinRead(this.jsonbinBinId, this.jsonbinAccessKey || undefined);
+                        if (record && typeof record.day === 'number') {
+                            this.updateCurrentDay(record.day);
+                        }
+                        return;
+                    }
                     const res = await fetch(this.serverHost + '/value', { cache: 'no-store', credentials: 'include' });
                     if (!res.ok) throw new Error('Bad response');
                     const json = await res.json();
@@ -354,6 +371,8 @@
                     this.description = data.description;
                     this.startDate = data.date;
                     this.serverHost = data.serverHost;
+                    if (data.jsonbinBinId) this.jsonbinBinId = data.jsonbinBinId;
+                    if (data.jsonbinAccessKey) this.jsonbinAccessKey = data.jsonbinAccessKey;
 
                     this.updateStatus(`Last updated: ${new Date().toLocaleTimeString()}`);
                 } catch (err) {
