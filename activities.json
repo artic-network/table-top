@@ -1,0 +1,12 @@
+{
+  "defaultActivity": "artic-table-top",
+  "activities": {
+    "artic-table-top": {
+      "baseUrl": "activities/artic-table-top/",
+      "statusUrl": "https://artic-example-datasets.s3.climb.ac.uk/tabletop_exercise/day.json"
+    },
+    "artic-lhfv-outbreak": {
+      "baseUrl": "activities/artic-lhfv-outbreak/"
+    }
+  }
+}

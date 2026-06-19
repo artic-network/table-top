@@ -3,7 +3,30 @@
 // 3) export helpers: getValue (sync), getValueAsync (async) and insertValueSpan(key, target, opts)
 
 (function () {
-  const jsonUrl = '/settings.json'; // change to full URL if needed
+  const params = new URLSearchParams(window.location.search);
+
+  function ensureTrailingSlash(value) {
+    return value.endsWith('/') ? value : `${value}/`;
+  }
+
+  function toAbsoluteUrl(value) {
+    return new URL(value, window.location.href).toString();
+  }
+
+  function resolveSettingsUrl() {
+    const explicit = params.get('settings') || params.get('settingsUrl');
+    if (explicit) return toAbsoluteUrl(explicit);
+
+    const activityBase = params.get('activityBase');
+    if (activityBase) {
+      const baseUrl = ensureTrailingSlash(toAbsoluteUrl(activityBase));
+      return new URL('settings.json', baseUrl).toString();
+    }
+
+    return toAbsoluteUrl('activities/artic-table-top/settings.json');
+  }
+
+  const jsonUrl = resolveSettingsUrl();
 
   // Start fetch immediately and expose the Promise
   window.appDataPromise = (async () => {

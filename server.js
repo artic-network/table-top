@@ -7,8 +7,8 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-// serve static files from public folder
-app.use(express.static('public'));
+// serve static files from repository root
+app.use(express.static('.'));
 
 io.on('connection', (socket) => {
   console.log('client connected', socket.id);

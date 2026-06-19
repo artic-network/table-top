@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>ARTIC Network - Table Top Control Centre</title>
+    <title>ARTIC Network - Outbreak Response Team | Data Console</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-" crossorigin="anonymous">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
@@ -129,11 +129,16 @@
                     <img src="assets/artic-logo-small.svg" alt="ARTIC Network Logo" width="64" height="64"/>
                     <!-- <i class="bi bi-file-earmark-text-fill fs-4 text-success me-2"></i> -->
                     <span class="artic-title fw-semibold">ARTIC Network</span>
-                    <small class="artic-subtitle text-muted ms-2">Table Top Control Centre</small>
+                    <small class="artic-subtitle text-muted ms-2">Outbreak Response Team | Real-time Data Console</small>
                 </a>
 
                 <div class="d-flex align-items-center gap-2">
+                    <div id="dayIndicator" class="artic-subtitle status-badge badge rounded-pill">Day 0</div>
                     <div id="status" class="artic-subtitle status-badge badge rounded-pill">Initializing...</div>
+                    <div class="btn-group" role="group" aria-label="Day navigation">
+                        <button id="dayBackBtn" class="artic-btn btn btn-outline-secondary btn-sm" title="Previous day"><i class="bi bi-chevron-left"></i></button>
+                        <button id="dayForwardBtn" class="artic-btn btn btn-outline-secondary btn-sm" title="Next day"><i class="bi bi-chevron-right"></i></button>
+                    </div>
                     <button id="refreshBtn" class="artic-btn btn btn-outline-secondary btn-sm" title="Refresh"><i class="bi bi-arrow-clockwise"></i></button>
                 </div>
             </div>
@@ -173,23 +178,7 @@
 
                 <!-- Content -->
                 <section class="col content-area d-flex flex-column">
-                     <div class="p-3 border-bottom d-flex align-items-center justify-content-between">
-                        <div class="d-flex align-items-center gap-2">
-                            <button id="pushDocument" class="btn btn-outline-primary btn-sm" disabled><i class="bi bi-box-arrow-up-right"></i> Push Document</button>
-                        </div>
-                        <div>
-                            <h6 class="mb-0" id="currentStatus">Select a document</h6>
-                            <small id="documentStatus" class="text-muted">Click any row on the left to preview the document</small>
-                        </div>
-                        <div class="d-flex align-items-center gap-2">
-                            <button id="resetToStart" class="btn btn-outline-primary btn-sm" disabled><i class="bi bi-box-arrow-up-right"></i> Reset to start</button>
-                        </div>
-                    </div>
-
-                   <div class="p-3 border-bottom d-flex align-items-center justify-content-between">
-                        <div class="d-flex align-items-center gap-2">
-                            <button id="pushDocument" class="btn btn-outline-primary btn-sm" disabled><i class="bi bi-box-arrow-up-right"></i> Push Document</button>
-                        </div>
+                    <div class="p-3 border-bottom d-flex align-items-center justify-content-between">
                         <div>
                             <h6 class="mb-0" id="docTitle">Select a document</h6>
                             <small id="docSubtitle" class="text-muted">Click any row on the left to preview the document</small>
@@ -212,7 +201,7 @@
 
     <script>
         class DocumentViewer {
-            constructor(documentListUrl, settingsUrl, statusUrl, pollInterval = 30000) {
+            constructor(documentListUrl, settingsUrl, statusUrl, pollInterval = 30000, initialDay = 0, dayFromUrl = false) {
                 this.documentListUrl = documentListUrl;
                 this.settingsUrl = settingsUrl;
                 this.statusUrl = statusUrl;
@@ -225,24 +214,25 @@
                 this.location = "A room.";
                 this.description = "An outbreak response exercise.";
                 this.startDate = "2025-01-01";
-                this.currentDay = 0;
+                this.currentDay = initialDay;
+                this.dayFromUrl = dayFromUrl;
                 this.newDay = true;
-                this.serverHost = "http://localhost:3000";
+                // this.serverHost = "http://localhost:3000";
+                this.serverHost = "http://tree.bio.ed.ac.uk:3000";
 
                 // Elements
                 this.tableBody = document.querySelector('#documentTable tbody');
                 this.contentArea = document.getElementById('contentArea');
                 this.statusElement = document.getElementById('status');
-                this.currentStatusElement = document.getElementById('currentStatus');
-                this.documentStatusElement = document.getElementById('documentStatus');
-                this.pushDocumentBtn = document.getElementById('pushDocument');
-                this.resetToStartBtn = document.getElementById('resetToStart');
+                this.dayIndicator = document.getElementById('dayIndicator');
                 this.titleElement = document.getElementById('docTitle');
                 this.subtitleElement = document.getElementById('docSubtitle');
                 this.openBtn = document.getElementById('openNewTab');
                 this.searchInput = document.getElementById('searchInput');
                 this.clearSearchBtn = document.getElementById('clearSearch');
                 this.refreshBtn = document.getElementById('refreshBtn');
+                this.dayBackBtn = document.getElementById('dayBackBtn');
+                this.dayForwardBtn = document.getElementById('dayForwardBtn');
                 this.intervalLabel = document.getElementById('intervalLabel');
                 this.noContent = document.getElementById('noContent');
 
@@ -251,6 +241,7 @@
 
             init() {
                 this.intervalLabel.textContent = Math.round(this.pollInterval / 1000) + 's';
+                this.updateDayIndicator();
                 this.loadSettings();
                 console.log("Settings: ", {
                     title: this.title,
@@ -266,18 +257,26 @@
                 this.connectServer(this.serverHost);
 
                 this.renderDocumentList();
-                // this.startPolling();
+                // this.startPolling(); // polling for updated status json
                 this.attachUI();
             }
 
             attachUI() {
                 this.refreshBtn.addEventListener('click', () => this.loadDocuments());
+                this.dayBackBtn.addEventListener('click', () => this.shiftDay(-1));
+                this.dayForwardBtn.addEventListener('click', () => this.shiftDay(1));
                 this.searchInput.addEventListener('input', (e) => this.filterList(e.target.value));
                 this.clearSearchBtn.addEventListener('click', () => { this.searchInput.value = ''; this.filterList(''); });
                 this.openBtn.addEventListener('click', () => this.openActiveInNewTab());
             }
 
             connectServer(serverHost) {
+                // Skip server connection if day was explicitly set via URL
+                if (this.dayFromUrl) {
+                    console.log("Day set via URL parameter, skipping server connection");
+                    return;
+                }
+
                 console.log("Connecting to server at:", serverHost);
                 const socket = io(serverHost, { withCredentials: true });
 
@@ -335,8 +334,8 @@
                         }
                     });
 
-                    // this.documents = this.documents.reverse();
-                    this.updateStatus(`Last updated: ${new Date().toLocaleTimeString()}`);
+                    this.documents = this.documents.reverse();
+                    this.updateCurrentDay(this.currentDay);
                 } catch (err) {
                     console.error(err);
                     this.showError(`Failed to load documents: ${err.message}`);
@@ -373,10 +372,12 @@
 
             async loadStatus() {
                 try {
+                    console.log("Loaded from:", this.statusUrl);
                     const response = await fetch(this.statusUrl);
                     if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
                     const data = await response.json();
                     this.updateCurrentDay(data.day);
+                    console.log("Loaded status:", data);
                 } catch (err) {
                     console.error(err);
                     this.showError(`Failed to load status: ${err.message}`);
@@ -384,15 +385,36 @@
             }
 
             updateCurrentDay(day) {
-                if (day !== this.currentDay) {
-                    this.currentDay = day;
+                const nextDay = Number.isFinite(day) ? day : parseInt(day, 10);
+                if (Number.isNaN(nextDay)) {
+                    return;
+                }
+
+                if (nextDay !== this.currentDay) {
+                    this.currentDay = nextDay;
                     this.newDay = true;
-                    console.log("New day:", day);
+                    console.log("New day:", nextDay);
                 } else {
                     this.newDay = false;
                 }
+                this.updateDayIndicator();
                 this.renderDocumentList();
                 this.updateStatus(`Last updated: ${new Date().toLocaleTimeString()}`);
+            }
+
+            updateDayIndicator() {
+                if (this.dayIndicator) {
+                    this.dayIndicator.textContent = `Day ${this.currentDay}`;
+                }
+            }
+
+            shiftDay(delta) {
+                const nextDay = Math.max(0, this.currentDay + delta);
+                this.currentDay = nextDay;
+                this.newDay = true;
+                this.updateDayIndicator();
+                this.renderDocumentList();
+                this.updateStatus(`Manually set to day ${this.currentDay}`);
             }
 
 
@@ -488,11 +510,6 @@
 
                 const url =  doc.url + (doc.url.includes('?') ? '&' : '?') + 'date=' + doc.date;
 
-                this.currentStatusElement.textContent = `Current day: ${this.currentDay}`;
-                this.documentStatusElement.textContent = `Document day: ${doc.day || (index + 1)}`;
-                this.openBtn.disabled = false;
-                this.openBtn.dataset.url = url;
-
                 this.titleElement.textContent = doc.title || doc.description || `Document ${index+1}`;
                 this.subtitleElement.textContent = doc.description || '';
                 this.openBtn.disabled = false;
@@ -578,7 +595,7 @@
         async function resolveStartupConfig() {
             const urlParams = new URLSearchParams(window.location.search);
             const defaultActivity = 'artic-table-top';
-            const defaultStatusUrl = 'play.json';
+            const defaultStatusUrl = 'https://artic-example-datasets.s3.climb.ac.uk/tabletop_exercise/day.json';
 
             const explicitDocs = urlParams.get('docs');
             const explicitSettings = urlParams.get('settings');
@@ -615,13 +632,19 @@
                 : new URL('settings.json', activityBaseUrl).toString();
 
             statusUrl = statusUrl ? toAbsoluteUrl(statusUrl) : defaultStatusUrl;
+
             const pollInterval = parseInt(urlParams.get('interval'), 10) || 5000;
+            const dayParam = urlParams.get('day');
+            const initialDay = dayParam !== null ? parseInt(dayParam, 10) : 0;
+            const dayFromUrl = dayParam !== null;
 
             return {
                 documentListUrl,
                 settingsUrl,
                 statusUrl,
                 pollInterval,
+                initialDay,
+                dayFromUrl,
             };
         }
 
@@ -631,7 +654,9 @@
                 config.documentListUrl,
                 config.settingsUrl,
                 config.statusUrl,
-                config.pollInterval
+                config.pollInterval,
+                config.initialDay,
+                config.dayFromUrl
             );
         })();
     </script>

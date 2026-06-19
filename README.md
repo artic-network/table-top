@@ -17,22 +17,40 @@ Frogspawn is a simple web-based document viewer that displays a list of document
 ### Basic Usage
 
 1. Open `index.html` in a web browser
-2. The page will load documents from `documents.json` by default
-3. Click on any document in the list to view it in the iframe
-4. The document list will automatically refresh every 30 seconds
+2. Select an activity card on the home page
+3. Click **Open Inbox** to launch `inbox.html` for that activity
+4. Or click **Open QR Page** to show a shareable QR code and deep link for that activity
 
-### Custom Configuration
+The inbox viewer page is now `inbox.html`.
 
-You can customize the behavior using URL parameters:
+### Activity-based Startup
 
-- `json`: Specify the URL of the JSON file to load
-  - Example: `index.html?json=https://example.com/my-documents.json`
-- `interval`: Set the polling interval in milliseconds
-  - Example: `index.html?interval=60000` (polls every 60 seconds)
+Frogspawn now supports named activities via a catalog:
 
-Combined example:
+- `activity`: Activity name to load
+  - Example: `inbox.html?activity=artic-table-top`
+- `activities`: URL to an activity catalog JSON (local or remote)
+  - Example: `inbox.html?activity=artic-table-top&activities=https://example.org/activities.json`
+- `activityBase`: Direct base URL override for a single activity pack
+  - Example: `inbox.html?activityBase=https://example.org/activities/artic-table-top/`
+
+### Configuration Overrides
+
+You can still override specific files directly:
+
+- `docs`: URL to `documents.json`
+- `settings`: URL to `settings.json`
+- `status`: URL to day/status JSON
+- `interval`: Polling interval in milliseconds
+
+Example:
 ```
-index.html?json=https://example.com/docs.json&interval=60000
+inbox.html?activity=artic-lhfv-outbreak&interval=60000
+```
+
+Explicit override example:
+```
+inbox.html?activity=artic-table-top&docs=https://example.com/custom-documents.json
 ```
 
 ## JSON Format
@@ -64,13 +82,32 @@ If only one of `title` or `description` is provided, it will be used for both fi
 
 ## Example
 
-The repository includes an example `documents.json` file with sample documents. You can modify this file to point to your own documents.
+The repository includes two activity packs in `activities/` with their own `documents.json`, `settings.json`, `documents/`, and `data/` folders.
+
+## Activity Catalog Format
+
+By default Frogspawn loads `activities.json` from the app root.
+
+```json
+{
+  "defaultActivity": "artic-table-top",
+  "activities": {
+    "artic-table-top": {
+      "baseUrl": "activities/artic-table-top/",
+      "statusUrl": "https://example.org/day.json"
+    },
+    "artic-lhfv-outbreak": {
+      "baseUrl": "activities/artic-lhfv-outbreak/"
+    }
+  }
+}
+```
 
 ## Deployment
 
 ### Local Testing
 
-Simply open `index.html` in your web browser. For testing with a local JSON file, you may need to run a local web server due to CORS restrictions:
+Open `index.html` for the launcher page, then launch an activity into `inbox.html`. For testing with local JSON files, you may need to run a local web server due to CORS restrictions:
 
 ```bash
 # Using Python 3
@@ -87,7 +124,12 @@ Then navigate to `http://localhost:8000` in your browser.
 
 ### Production Deployment
 
-Upload the `index.html` file to any web server or hosting service. Configure it to point to your JSON document list using the `?json=` URL parameter.
+Host the app shell and either:
+
+- host activity packs under `activities/<name>/`, or
+- provide a remote catalog with remote activity `baseUrl` values.
+
+If remote activity assets are on a different origin, ensure CORS allows browser fetches from the Frogspawn origin.
 
 ## Security Considerations
 

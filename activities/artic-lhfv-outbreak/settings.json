@@ -1,0 +1,7 @@
+{
+  "title": "ARTIC LHFV Outbreak exercise",
+  "description": "An outbreak response exercise focused on a Lassa-like hemorrhagic fever scenario.",
+  "location": "Outbreak operations center",
+  "date": "2026-01-15",
+  "serverHost": "https://tree.bio.ed.ac.uk:3000"
+}
