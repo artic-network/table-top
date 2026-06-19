@@ -3,7 +3,6 @@
   "description": "An outbreak response exercise simulating the investigation of an undiagnosed febrile illness in Southern California.",
   "location": "PHA4GE/IPSN meeting",
   "date": "2025-10-25",
-  "serverHost": "https://tree.bio.ed.ac.uk:3000",
   "jsonbinBinId": "6a35871eda38895dfedf2458",
   "jsonbinAccessKey": "$2a$10$p4tmAH58UHZ8RQwLzQB0IuRz.9D6w7.yeszL1MbydP..pbBmPVpQO"
 }
