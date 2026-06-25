@@ -10,8 +10,7 @@ The app shell lives at the repository root:
 
 - `index.html` - home page / activity launcher
 - `inbox.html` - participant app for a selected activity
-- `controlpanel.html` - facilitator panel for advancing the activity
-- `activity-qr.html` - QR/share page for a selected activity
+- `controls.html` - facilitator panel for advancing the activity
 - `activities.json` - catalog of available activities
 - `js/` - shared JavaScript used by the app shell
 - `css/` - shared styles used by the app shell
@@ -67,7 +66,6 @@ Typical fields:
   "description": "Exercise description",
   "location": "Exercise location",
   "date": "2025-10-25",
-  "serverHost": "https://tree.bio.ed.ac.uk:3000",
   "jsonbinBinId": "",
   "jsonbinAccessKey": ""
 }
@@ -76,10 +74,8 @@ Typical fields:
 Notes:
 
 - `title`, `description`, `location`, and `date` are shown in the UI.
-- `serverHost` is still used when the app falls back to the legacy Socket.IO
-  server.
-- `jsonbinBinId` and `jsonbinAccessKey` are used when the activity is backed by
-  JSONBin instead of the custom server.
+- `jsonbinBinId` and `jsonbinAccessKey` are used by inbox/control panel to read
+  the current day from JSONBin.
 
 ### `documents.json`
 
@@ -203,11 +199,10 @@ Example catalog entry:
   "defaultActivity": "artic-table-top",
   "activities": {
     "artic-table-top": {
-      "baseUrl": "activities/artic-table-top/",
-      "statusUrl": "https://artic-example-datasets.s3.climb.ac.uk/tabletop_exercise/day.json"
+      "url": "activities/artic-table-top/"
     },
     "new-activity": {
-      "baseUrl": "activities/new-activity/"
+      "url": "activities/new-activity/"
     }
   }
 }
@@ -218,9 +213,8 @@ Example catalog entry:
 The main ways to launch an activity are:
 
 - `index.html` - launcher page
-- `inbox.html?activity=<name>` - participant inbox for an activity
-- `controlpanel.html?activity=<name>` - facilitator panel for an activity
-- `activity-qr.html?activity=<name>` - QR/share page for an activity
+- `inbox.html?url=<activity-folder-url>` - participant inbox for an activity
+- `controls.html?activityBase=<activity-folder-url>` - facilitator panel for an activity
 
 ## Practical Rules
 
@@ -244,4 +238,4 @@ Before an activity is ready, confirm:
 - [ ] `activities/<name>/css/` exists if the activity uses custom styles
 - [ ] `activities.json` includes the new activity
 - [ ] document pages use the correct relative links
-- [ ] the launcher opens the activity inbox and QR page correctly
+- [ ] the launcher opens the activity inbox and control panel correctly

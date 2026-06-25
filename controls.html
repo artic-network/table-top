@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Frogspawn Controls</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-" crossorigin="anonymous">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <script src="js/jsonbin.js"></script>
+  <style>
+    :root {
+      --bg: #f3f5f7;
+      --card: #ffffff;
+      --ink: #1c2730;
+      --muted: #516170;
+      --line: #d7dfe6;
+      --accent: #005b68;
+      --accent-2: #8a2d14;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 18% 18%, #ecfeff 0%, transparent 28%),
+        radial-gradient(circle at 85% 85%, #fff7ed 0%, transparent 30%),
+        var(--bg);
+      font-family: "Avenir Next", "Gill Sans", "Segoe UI", sans-serif;
+    }
+
+    .shell {
+      width: min(1200px, 94vw);
+      margin: 0 auto;
+      padding: 1.3rem 0 2.4rem;
+    }
+
+    .title-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+
+    .title {
+      margin: 0;
+      font-size: clamp(1.4rem, 2.3vw, 2rem);
+      letter-spacing: 0.01em;
+    }
+
+    .subtitle {
+      margin: 0.25rem 0 0;
+      color: var(--muted);
+      font-size: 0.98rem;
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: 0 6px 16px rgba(28, 39, 48, 0.06);
+      padding: 1rem;
+      margin-bottom: 0.9rem;
+    }
+
+    .panel h2 {
+      margin: 0 0 0.8rem;
+      font-size: 1.05rem;
+    }
+
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.6rem;
+    }
+
+    .badge-soft {
+      background: #eaf4f6;
+      color: #0f525d;
+      border: 1px solid #c6e2e7;
+      border-radius: 999px;
+      font-weight: 600;
+      padding: 0.25rem 0.55rem;
+      font-size: 0.82rem;
+    }
+
+    .badge-soft.warn {
+      background: #fff4e5;
+      color: #8a2d14;
+      border-color: #fed7aa;
+    }
+
+    .badge-soft.err {
+      background: #fde8e8;
+      color: #9b1c1c;
+      border-color: #fecaca;
+    }
+
+    .controls-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    .day-chip {
+      border-radius: 999px;
+      border: 1px solid #c0d5da;
+      color: #0f525d;
+      background: #edf8fa;
+      font-weight: 700;
+      padding: 0.38rem 0.85rem;
+      min-width: 84px;
+      text-align: center;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+    }
+
+    .day-group-row td {
+      background: #f8fafc;
+      font-weight: 700;
+      border-top: 1px solid var(--line);
+    }
+
+    .doc-title {
+      font-weight: 600;
+    }
+
+    .doc-desc {
+      color: var(--muted);
+      font-size: 0.92rem;
+      margin-top: 0.15rem;
+    }
+
+    .tiny-muted {
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="title-bar">
+      <div>
+        <h1 class="title">Facilitator Controls</h1>
+        <p id="activitySubtitle" class="subtitle">Loading activity details...</p>
+      </div>
+      <a id="openInboxLink" class="btn btn-outline-secondary btn-sm" href="#">Open Inbox</a>
+    </header>
+
+    <section class="panel">
+      <h2>JSONBin Connection</h2>
+      <div class="status-row">
+        <span id="masterKeyBadge" class="badge-soft warn">Master key not connected</span>
+        <span id="binReadBadge" class="badge-soft warn">Waiting for JSONBin read</span>
+      </div>
+      <div class="input-group input-group-sm" style="max-width: 520px;">
+        <span class="input-group-text"><i class="bi bi-key"></i></span>
+        <input id="masterKeyInput" type="password" class="form-control" placeholder="Paste JSONBin Master Key">
+        <button id="connectKeyBtn" class="btn btn-primary" type="button">Connect Key</button>
+        <button id="clearKeyBtn" class="btn btn-outline-secondary" type="button">Clear</button>
+      </div>
+      <div id="connectionMessage" class="tiny-muted mt-2">Master key is stored in sessionStorage for this tab only.</div>
+    </section>
+
+    <section class="panel">
+      <h2>Day Controls</h2>
+      <div class="controls-row">
+        <button id="dayBackBtn" class="btn btn-outline-secondary btn-sm" type="button"><i class="bi bi-chevron-left"></i> Previous</button>
+        <span id="dayIndicator" class="day-chip">Day 0</span>
+        <button id="dayForwardBtn" class="btn btn-outline-secondary btn-sm" type="button">Next <i class="bi bi-chevron-right"></i></button>
+        <button id="resetBtn" class="btn btn-outline-danger btn-sm" type="button">Reset to Day 0</button>
+      </div>
+      <div id="dayMessage" class="tiny-muted mt-2">Waiting for activity settings.</div>
+    </section>
+
+    <section class="panel">
+      <h2>Documents by Deployment Day</h2>
+      <div class="table-wrap">
+        <table class="table table-sm align-middle mb-0">
+          <thead class="table-light sticky-top">
+            <tr>
+              <th scope="col" style="width: 130px;">Day</th>
+              <th scope="col">Document</th>
+              <th scope="col" style="width: 160px;">Deploy Date</th>
+            </tr>
+          </thead>
+          <tbody id="documentsBody">
+            <tr><td colspan="3" class="text-muted">Loading documents...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    function ensureTrailingSlash(value) {
+      return value.endsWith('/') ? value : `${value}/`;
+    }
+
+    function toAbsoluteUrl(value) {
+      return new URL(value, window.location.href).toString();
+    }
+
+    function pickActivityEntry(catalog, activityName) {
+      if (!catalog || !catalog.activities) return null;
+      const entry = catalog.activities[activityName];
+      return entry || null;
+    }
+
+    async function loadActivityCatalog(catalogUrl) {
+      try {
+        const response = await fetch(toAbsoluteUrl(catalogUrl), { cache: 'no-store' });
+        if (!response.ok) return null;
+        return await response.json();
+      } catch (_err) {
+        return null;
+      }
+    }
+
+    async function resolveStartupConfig() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const explicitDocs = urlParams.get('docs');
+      const explicitSettings = urlParams.get('settings');
+      const pollInterval = parseInt(urlParams.get('interval'), 10) || 5000;
+
+      let activityBase = urlParams.get('activityBase');
+      const selectedActivity = urlParams.get('activity');
+      const urlBaseParam = urlParams.get('url');
+
+      if (!activityBase && urlBaseParam) {
+        const rootBaseUrl = ensureTrailingSlash(toAbsoluteUrl(urlBaseParam));
+        activityBase = selectedActivity
+          ? new URL(`activities/${selectedActivity}/`, rootBaseUrl).toString()
+          : rootBaseUrl;
+      }
+
+      if (!activityBase && selectedActivity) {
+        const catalog = await loadActivityCatalog(urlParams.get('activities') || 'activities.json');
+        const entry = pickActivityEntry(catalog, selectedActivity);
+        if (entry) {
+          activityBase = (entry.url || entry.baseUrl || entry.base || '').toString();
+        }
+        if (!activityBase) {
+          activityBase = `activities/${selectedActivity}/`;
+        }
+      }
+
+      if (!activityBase) {
+        const catalog = await loadActivityCatalog(urlParams.get('activities') || 'activities.json');
+        const fallbackActivity = catalog && catalog.defaultActivity ? catalog.defaultActivity : 'artic-table-top';
+        const entry = pickActivityEntry(catalog, fallbackActivity);
+        activityBase = entry && (entry.url || entry.baseUrl || entry.base)
+          ? (entry.url || entry.baseUrl || entry.base).toString()
+          : `activities/${fallbackActivity}/`;
+      }
+
+      const activityBaseUrl = ensureTrailingSlash(toAbsoluteUrl(activityBase));
+      return {
+        activityBaseUrl,
+        documentListUrl: explicitDocs ? toAbsoluteUrl(explicitDocs) : new URL('documents.json', activityBaseUrl).toString(),
+        settingsUrl: explicitSettings ? toAbsoluteUrl(explicitSettings) : new URL('settings.json', activityBaseUrl).toString(),
+        pollInterval,
+      };
+    }
+
+    class ControlsApp {
+      constructor(config) {
+        this.activityBaseUrl = config.activityBaseUrl;
+        this.documentListUrl = config.documentListUrl;
+        this.settingsUrl = config.settingsUrl;
+        this.pollInterval = config.pollInterval;
+
+        this.title = 'Unknown activity';
+        this.location = '';
+        this.startDate = '';
+        this.currentDay = 0;
+        this.documents = [];
+        this.jsonbinBinId = null;
+        this.jsonbinAccessKey = null;
+        this.jsonbinMasterKey = null;
+        this.pollTimer = null;
+
+        this.activitySubtitle = document.getElementById('activitySubtitle');
+        this.openInboxLink = document.getElementById('openInboxLink');
+        this.masterKeyBadge = document.getElementById('masterKeyBadge');
+        this.binReadBadge = document.getElementById('binReadBadge');
+        this.masterKeyInput = document.getElementById('masterKeyInput');
+        this.connectKeyBtn = document.getElementById('connectKeyBtn');
+        this.clearKeyBtn = document.getElementById('clearKeyBtn');
+        this.connectionMessage = document.getElementById('connectionMessage');
+
+        this.dayIndicator = document.getElementById('dayIndicator');
+        this.dayBackBtn = document.getElementById('dayBackBtn');
+        this.dayForwardBtn = document.getElementById('dayForwardBtn');
+        this.resetBtn = document.getElementById('resetBtn');
+        this.dayMessage = document.getElementById('dayMessage');
+
+        this.documentsBody = document.getElementById('documentsBody');
+      }
+
+      async init() {
+        this.openInboxLink.href = `inbox.html?url=${encodeURIComponent(this.activityBaseUrl)}`;
+        this.bindEvents();
+        this.restoreMasterKey();
+        await this.loadSettings();
+        await this.loadDocuments();
+        await this.refreshDayFromBin();
+        this.startPolling();
+        this.updateDayIndicator();
+        this.renderDocumentTable();
+      }
+
+      bindEvents() {
+        this.connectKeyBtn.addEventListener('click', () => this.connectMasterKey());
+        this.clearKeyBtn.addEventListener('click', () => this.clearMasterKey());
+        this.dayBackBtn.addEventListener('click', () => this.setDay(this.currentDay - 1));
+        this.dayForwardBtn.addEventListener('click', () => this.setDay(this.currentDay + 1));
+        this.resetBtn.addEventListener('click', () => this.setDay(0));
+      }
+
+      restoreMasterKey() {
+        const savedKey = sessionStorage.getItem('jsonbinMasterKey');
+        if (savedKey) {
+          this.jsonbinMasterKey = savedKey;
+          this.masterKeyInput.value = '********';
+        }
+        this.updateMasterKeyBadge();
+      }
+
+      connectMasterKey() {
+        const key = this.masterKeyInput.value.trim();
+        if (!key || key === '********') {
+          return;
+        }
+        this.jsonbinMasterKey = key;
+        sessionStorage.setItem('jsonbinMasterKey', key);
+        this.masterKeyInput.value = '********';
+        this.connectionMessage.textContent = 'Master key connected for this tab session.';
+        this.updateMasterKeyBadge();
+      }
+
+      clearMasterKey() {
+        this.jsonbinMasterKey = null;
+        sessionStorage.removeItem('jsonbinMasterKey');
+        this.masterKeyInput.value = '';
+        this.connectionMessage.textContent = 'Master key cleared.';
+        this.updateMasterKeyBadge();
+      }
+
+      updateMasterKeyBadge() {
+        if (this.jsonbinMasterKey) {
+          this.masterKeyBadge.className = 'badge-soft';
+          this.masterKeyBadge.textContent = 'Master key connected';
+        } else {
+          this.masterKeyBadge.className = 'badge-soft warn';
+          this.masterKeyBadge.textContent = 'Master key not connected';
+        }
+      }
+
+      async loadSettings() {
+        try {
+          const response = await fetch(this.settingsUrl, { cache: 'no-store' });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const data = await response.json();
+          this.title = data.title || this.title;
+          this.location = data.location || '';
+          this.startDate = data.date || '';
+          this.jsonbinBinId = data.jsonbinBinId || null;
+          this.jsonbinAccessKey = data.jsonbinAccessKey || null;
+          this.activitySubtitle.textContent = `${this.title}${this.location ? ` - ${this.location}` : ''}`;
+
+          if (!this.jsonbinBinId) {
+            this.binReadBadge.className = 'badge-soft err';
+            this.binReadBadge.textContent = 'Missing jsonbinBinId in settings.json';
+            this.dayMessage.textContent = 'Cannot sync day without jsonbinBinId.';
+          }
+        } catch (err) {
+          this.activitySubtitle.textContent = `Settings load failed: ${err.message}`;
+          this.binReadBadge.className = 'badge-soft err';
+          this.binReadBadge.textContent = 'Settings unavailable';
+        }
+      }
+
+      async loadDocuments() {
+        try {
+          const response = await fetch(this.documentListUrl, { cache: 'no-store' });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const data = await response.json();
+          if (!Array.isArray(data)) throw new Error('documents.json must be an array');
+          this.documents = data.map((doc, index) => {
+            const dayValue = Number.isFinite(doc.day) ? doc.day : parseInt(doc.day, 10);
+            const day = Number.isNaN(dayValue) ? 0 : Math.max(0, dayValue);
+            const title = doc.title || doc.description || `Document ${index + 1}`;
+            const description = doc.description || '';
+            return {
+              day,
+              title,
+              description,
+              order: index,
+            };
+          });
+        } catch (err) {
+          this.documents = [];
+          this.documentsBody.innerHTML = `<tr><td colspan="3" class="text-danger">Failed to load documents: ${this.escapeHtml(err.message)}</td></tr>`;
+        }
+      }
+
+      startPolling() {
+        if (!this.jsonbinBinId) return;
+        if (this.pollTimer) clearInterval(this.pollTimer);
+        this.pollTimer = setInterval(() => this.refreshDayFromBin(), this.pollInterval);
+      }
+
+      async refreshDayFromBin() {
+        if (!this.jsonbinBinId) {
+          return;
+        }
+        try {
+          const record = await jsonbinRead(this.jsonbinBinId, this.jsonbinAccessKey || undefined);
+          const dayValue = record && Number.isFinite(record.day) ? record.day : parseInt(record && record.day, 10);
+          if (!Number.isNaN(dayValue)) {
+            this.currentDay = Math.max(0, dayValue);
+            this.updateDayIndicator();
+          }
+          this.binReadBadge.className = 'badge-soft';
+          this.binReadBadge.textContent = 'JSONBin read OK';
+          this.dayMessage.textContent = `Synced from JSONBin at ${new Date().toLocaleTimeString()}.`;
+        } catch (err) {
+          this.binReadBadge.className = 'badge-soft err';
+          this.binReadBadge.textContent = 'JSONBin read failed';
+          this.dayMessage.textContent = `Read failed: ${err.message}`;
+        }
+      }
+
+      async setDay(nextDay) {
+        const day = Math.max(0, nextDay);
+        if (!this.jsonbinBinId) {
+          this.dayMessage.textContent = 'Cannot write day: missing jsonbinBinId.';
+          return;
+        }
+        if (!this.jsonbinMasterKey) {
+          this.dayMessage.textContent = 'Connect a master key before writing day updates.';
+          return;
+        }
+
+        try {
+          await jsonbinWrite(this.jsonbinBinId, this.jsonbinMasterKey, { day });
+          this.currentDay = day;
+          this.updateDayIndicator();
+          this.dayMessage.textContent = `Day ${day} written to JSONBin at ${new Date().toLocaleTimeString()}.`;
+          this.binReadBadge.className = 'badge-soft';
+          this.binReadBadge.textContent = 'JSONBin read/write OK';
+        } catch (err) {
+          this.dayMessage.textContent = `Write failed: ${err.message}`;
+          this.binReadBadge.className = 'badge-soft err';
+          this.binReadBadge.textContent = 'JSONBin write failed';
+        }
+      }
+
+      updateDayIndicator() {
+        this.dayIndicator.textContent = `Day ${this.currentDay}`;
+      }
+
+      computeDeployDate(day) {
+        if (!this.startDate) return '';
+        const baseDate = new Date(this.startDate);
+        if (Number.isNaN(baseDate.getTime())) return '';
+        baseDate.setDate(baseDate.getDate() + day);
+        return baseDate.toISOString().split('T')[0];
+      }
+
+      renderDocumentTable() {
+        if (!this.documents || this.documents.length === 0) {
+          this.documentsBody.innerHTML = '<tr><td colspan="3" class="text-muted">No documents found.</td></tr>';
+          return;
+        }
+
+        const grouped = new Map();
+        for (const doc of this.documents) {
+          if (!grouped.has(doc.day)) {
+            grouped.set(doc.day, []);
+          }
+          grouped.get(doc.day).push(doc);
+        }
+
+        const sortedDays = Array.from(grouped.keys()).sort((a, b) => a - b);
+        const rows = [];
+
+        for (const day of sortedDays) {
+          const deployDate = this.computeDeployDate(day);
+          rows.push(`
+            <tr class="day-group-row">
+              <td colspan="3">Day ${day}${deployDate ? ` - ${deployDate}` : ''}</td>
+            </tr>
+          `);
+
+          const docs = grouped.get(day).sort((a, b) => a.order - b.order);
+          for (const doc of docs) {
+            rows.push(`
+              <tr>
+                <td>${day}</td>
+                <td>
+                  <div class="doc-title">${this.escapeHtml(doc.title)}</div>
+                  ${doc.description ? `<div class="doc-desc">${this.escapeHtml(doc.description)}</div>` : ''}
+                </td>
+                <td>${this.escapeHtml(this.computeDeployDate(day))}</td>
+              </tr>
+            `);
+          }
+        }
+
+        this.documentsBody.innerHTML = rows.join('');
+      }
+
+      escapeHtml(text) {
+        const d = document.createElement('div');
+        d.textContent = text;
+        return d.innerHTML;
+      }
+    }
+
+    (async function boot() {
+      const config = await resolveStartupConfig();
+      const app = new ControlsApp(config);
+      app.init();
+    })();
+  </script>
+</body>
+</html>

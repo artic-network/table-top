@@ -19,20 +19,20 @@ Frogspawn is a simple web-based document viewer that displays a list of document
 1. Open `index.html` in a web browser
 2. Select an activity card on the home page
 3. Click **Open Inbox** to launch `inbox.html` for that activity
-4. Or click **Open QR Page** to show a shareable QR code and deep link for that activity
+4. Or click **Open Control Panel** to launch `controls.html` for that activity
 
 The inbox viewer page is now `inbox.html`.
 
 ### Activity-based Startup
 
-Frogspawn now supports named activities via a catalog:
+Frogspawn uses a simple URL-based startup model:
 
-- `activity`: Activity name to load
-  - Example: `inbox.html?activity=artic-table-top`
-- `activities`: URL to an activity catalog JSON (local or remote)
-  - Example: `inbox.html?activity=artic-table-top&activities=https://example.org/activities.json`
-- `activityBase`: Direct base URL override for a single activity pack
-  - Example: `inbox.html?activityBase=https://example.org/activities/artic-table-top/`
+- `url`: Base URL for activity content
+  - If `activity` is not provided, this points directly at an activity folder containing `documents.json` and `settings.json`.
+  - Example: `inbox.html?url=https://example.org/lhfv-table-top/activities/artic-lhfv-outbreak/`
+- `activity`: Optional activity name
+  - When provided, `url` is treated as the repository base, and inbox loads from `activities/<activity>/` under that base.
+  - Example: `inbox.html?url=https://example.org/lhfv-table-top/&activity=artic-lhfv-outbreak`
 
 ### Configuration Overrides
 
@@ -45,12 +45,12 @@ You can still override specific files directly:
 
 Example:
 ```
-inbox.html?activity=artic-lhfv-outbreak&interval=60000
+inbox.html?url=https://example.org/lhfv-table-top/activities/artic-lhfv-outbreak/&interval=60000
 ```
 
 Explicit override example:
 ```
-inbox.html?activity=artic-table-top&docs=https://example.com/custom-documents.json
+inbox.html?url=https://example.org/lhfv-table-top/&activity=artic-lhfv-outbreak&docs=https://example.com/custom-documents.json
 ```
 
 ## JSON Format
@@ -93,11 +93,10 @@ By default Frogspawn loads `activities.json` from the app root.
   "defaultActivity": "artic-table-top",
   "activities": {
     "artic-table-top": {
-      "baseUrl": "activities/artic-table-top/",
-      "statusUrl": "https://example.org/day.json"
+      "url": "activities/artic-table-top/"
     },
     "artic-lhfv-outbreak": {
-      "baseUrl": "activities/artic-lhfv-outbreak/"
+      "url": "activities/artic-lhfv-outbreak/"
     }
   }
 }

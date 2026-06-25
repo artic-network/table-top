@@ -1,7 +1,7 @@
 # JSONBin.io Setup Guide
 
 JSONBin.io is a free hosted JSON store. Frogspawn uses it as a lightweight
-alternative to running `server.js`: the facilitator's control panel writes the
+state backend: the facilitator's control panel writes the
 current day to a bin; all participant inbox tabs poll that bin and update
 automatically — no custom server required.
 
@@ -53,7 +53,6 @@ Edit `activities/<activity-name>/settings.json` and add two fields:
   "description": "...",
   "location": "...",
   "date": "2025-10-25",
-  "serverHost": "https://tree.bio.ed.ac.uk:3000",
   "jsonbinBinId": "PASTE_YOUR_BIN_ID_HERE",
   "jsonbinAccessKey": "PASTE_READ_ONLY_ACCESS_KEY_OR_LEAVE_EMPTY_IF_PUBLIC"
 }
@@ -66,7 +65,7 @@ Edit `activities/<activity-name>/settings.json` and add two fields:
 
 ## 5. Open the control panel and enter the Master Key
 
-1. Open `controlpanel.html?activity=artic-table-top` in your facilitator browser.
+1. Open `controls.html?activity=artic-table-top` in your facilitator browser.
 2. A **Master Key** input field is shown in the toolbar.
 3. Paste your Master Key and press **Connect**.
 4. The status badge will confirm the connection and show the current day.
@@ -82,7 +81,7 @@ sent to any endpoint other than `api.jsonbin.io`.
 Participants open:
 
 ```
-https://<your-host>/inbox.html?activity=artic-table-top
+https://<your-host>/inbox.html?url=https://<your-host>/activities/artic-table-top/
 ```
 
 The inbox polls the bin every **10 seconds** (configurable via `?interval=`
