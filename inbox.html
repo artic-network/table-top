@@ -100,6 +100,18 @@
         .table-clickable tbody tr { cursor: pointer; }
         .status-badge.loading { background-color: #ffd54f; color: #212529; }
         .status-badge.error { background-color: #f8d7da; color: #842029; }
+        .day-badge {
+            background: linear-gradient(135deg, #ffe7a8 0%, #f7e08b 100%);
+            color: #2f2a00;
+            border: 1px solid #b88f2a;
+            box-shadow: 0 0 0 1px rgba(255, 244, 207, 0.65) inset, 0 2px 8px rgba(120, 94, 28, 0.28);
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            font-size: 0.95rem;
+            padding: 0.45rem 0.8rem;
+            min-width: 84px;
+            text-align: center;
+        }
         .no-content-center {
             flex: 1 1 auto;
             display: flex;
@@ -133,7 +145,7 @@
                 </a>
 
                 <div class="d-flex align-items-center gap-2">
-                    <div id="dayIndicator" class="artic-subtitle status-badge badge rounded-pill">Day 0</div>
+                    <div id="dayIndicator" class="status-badge day-badge badge rounded-pill">Day 0</div>
                     <div id="status" class="artic-subtitle status-badge badge rounded-pill">Initializing...</div>
                     <div class="btn-group" role="group" aria-label="Day navigation">
                         <button id="dayBackBtn" class="artic-btn btn btn-outline-secondary btn-sm" title="Previous day"><i class="bi bi-chevron-left"></i></button>
