@@ -326,6 +326,7 @@
         this.currentDay = 0;
         this.documents = [];
         this.deployedSet = new Set();
+        this.deployedAt = {};
         this.jsonbinBinId = null;
         this.jsonbinAccessKey = null;
         this.jsonbinMasterKey = null;
@@ -515,6 +516,11 @@
           if (Array.isArray(record && record.deployed)) {
             this.deployedSet = new Set(record.deployed);
           }
+          if (record && typeof record.deployedAt === 'object' && record.deployedAt !== null) {
+            this.deployedAt = { ...record.deployedAt };
+          } else {
+            this.deployedAt = {};
+          }
           this.binReadBadge.className = 'badge-soft';
           this.binReadBadge.textContent = 'JSONBin read OK';
           this.dayMessage.textContent = `Synced from JSONBin at ${new Date().toLocaleTimeString()}.`;
@@ -536,9 +542,18 @@
           return;
         }
         try {
+          const deployedAt = {};
+          for (const url of this.deployedSet) {
+            const ts = this.deployedAt[url];
+            if (typeof ts === 'number' && Number.isFinite(ts)) {
+              deployedAt[url] = ts;
+            }
+          }
+
           await jsonbinWrite(this.jsonbinBinId, this.jsonbinMasterKey, {
             day: this.currentDay,
             deployed: Array.from(this.deployedSet),
+            deployedAt,
           });
           this.binReadBadge.className = 'badge-soft';
           this.binReadBadge.textContent = 'JSONBin read/write OK';
@@ -553,8 +568,10 @@
       toggleDoc(relativeUrl) {
         if (this.deployedSet.has(relativeUrl)) {
           this.deployedSet.delete(relativeUrl);
+          delete this.deployedAt[relativeUrl];
         } else {
           this.deployedSet.add(relativeUrl);
+          this.deployedAt[relativeUrl] = Date.now();
         }
         this.renderDocumentTable();
         this.writeState();
@@ -562,18 +579,23 @@
 
       startDay(day) {
         this.currentDay = Math.max(0, day);
+        const startedAt = Date.now();
+        let sequence = 0;
 
         // Revert state by removing deployments from later days.
         for (const doc of this.documents) {
           if (doc.day > this.currentDay) {
             this.deployedSet.delete(doc.relativeUrl);
+            delete this.deployedAt[doc.relativeUrl];
           }
         }
 
         // Auto-deploy all eligible docs up to the started day.
         for (const doc of this.documents) {
-          if (doc.day <= this.currentDay && doc.autoDeploy) {
+          if (doc.day <= this.currentDay && doc.autoDeploy && !this.deployedSet.has(doc.relativeUrl)) {
             this.deployedSet.add(doc.relativeUrl);
+            this.deployedAt[doc.relativeUrl] = startedAt + sequence;
+            sequence += 1;
           }
         }
 

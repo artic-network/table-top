@@ -220,6 +220,7 @@
                 this.jsonbinBinId = null;
                 this.jsonbinAccessKey = null;
                 this.deployedUrls = null; // null = fall back to day-based filter
+                this.deployedAt = new Map();
 
                 // Elements
                 this.tableBody = document.querySelector('#documentTable tbody');
@@ -303,6 +304,19 @@
                     if (Array.isArray(record && record.deployed)) {
                         const prev = this.deployedUrls;
                         this.deployedUrls = new Set(record.deployed);
+
+                        const deployedAtMap = new Map();
+                        const recordDeployedAt = record && typeof record.deployedAt === 'object' && record.deployedAt !== null
+                            ? record.deployedAt
+                            : {};
+                        for (const url of this.deployedUrls) {
+                            const ts = recordDeployedAt[url];
+                            if (typeof ts === 'number' && Number.isFinite(ts)) {
+                                deployedAtMap.set(url, ts);
+                            }
+                        }
+                        this.deployedAt = deployedAtMap;
+
                         // Detect newly deployed docs for table-new highlight
                         if (prev !== null) {
                             this.newlyDeployed = new Set(
@@ -420,6 +434,7 @@
 
             renderDocumentList(filter = '') {
                 const rows = [];
+                const visibleDocs = [];
                 const lowerFilter = filter.toLowerCase();
                 if (!this.documents || this.documents.length === 0) {
                     this.tableBody.innerHTML = '<tr><td colspan="2" class="text-muted">No documents available</td></tr>';
@@ -445,6 +460,27 @@
                     if (lowerFilter) {
                         if (!((title + ' ' + description).toLowerCase().includes(lowerFilter))) return;
                     }
+
+                    visibleDocs.push({ doc, idx, isNew, useDeployedSet, listPos: visibleDocs.length });
+                });
+
+                visibleDocs.sort((a, b) => {
+                    if (a.doc.day !== b.doc.day) {
+                        return b.doc.day - a.doc.day;
+                    }
+
+                    if (a.useDeployedSet && b.useDeployedSet) {
+                        const aTs = this.deployedAt.get(a.doc.relativeUrl) || 0;
+                        const bTs = this.deployedAt.get(b.doc.relativeUrl) || 0;
+                        if (aTs !== bTs) {
+                            return bTs - aTs;
+                        }
+                    }
+
+                    return a.listPos - b.listPos;
+                });
+
+                visibleDocs.forEach(({ doc, idx, isNew }) => {
 
                     const tr = document.createElement('tr');
                     tr.setAttribute('data-index', idx);
