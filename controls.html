@@ -100,13 +100,6 @@
       border-color: #fecaca;
     }
 
-    .controls-row {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-      flex-wrap: wrap;
-    }
-
     .day-chip {
       border-radius: 999px;
       border: 1px solid #c0d5da;
@@ -116,6 +109,22 @@
       padding: 0.38rem 0.85rem;
       min-width: 84px;
       text-align: center;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.8rem;
+    }
+
+    .section-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
     }
 
     .table-wrap {
@@ -141,9 +150,39 @@
       margin-top: 0.15rem;
     }
 
+    .doc-mode {
+      display: inline-block;
+      margin-top: 0.3rem;
+      font-size: 0.74rem;
+      font-weight: 600;
+      border-radius: 999px;
+      padding: 0.12rem 0.45rem;
+      border: 1px solid #cfd8df;
+      color: #3b4d5d;
+      background: #f7fafc;
+    }
+
+    .doc-mode.manual {
+      color: #8a2d14;
+      border-color: #fdba74;
+      background: #fff7ed;
+    }
+
     .tiny-muted {
       color: var(--muted);
       font-size: 0.88rem;
+    }
+
+    .doc-deployed td {
+      background: #f0faf4;
+    }
+
+    .doc-deployed .doc-title {
+      color: #0d6832;
+    }
+
+    .btn-deploy {
+      min-width: 80px;
     }
   </style>
 </head>
@@ -169,33 +208,34 @@
         <button id="connectKeyBtn" class="btn btn-primary" type="button">Connect Key</button>
         <button id="clearKeyBtn" class="btn btn-outline-secondary" type="button">Clear</button>
       </div>
-      <div id="connectionMessage" class="tiny-muted mt-2">Master key is stored in sessionStorage for this tab only.</div>
-    </section>
-
-    <section class="panel">
-      <h2>Day Controls</h2>
-      <div class="controls-row">
-        <button id="dayBackBtn" class="btn btn-outline-secondary btn-sm" type="button"><i class="bi bi-chevron-left"></i> Previous</button>
-        <span id="dayIndicator" class="day-chip">Day 0</span>
-        <button id="dayForwardBtn" class="btn btn-outline-secondary btn-sm" type="button">Next <i class="bi bi-chevron-right"></i></button>
-        <button id="resetBtn" class="btn btn-outline-danger btn-sm" type="button">Reset to Day 0</button>
+      <div class="form-check mt-2">
+        <input class="form-check-input" type="checkbox" id="rememberKeyCheck">
+        <label class="form-check-label tiny-muted" for="rememberKeyCheck">Remember until cleared (stored in localStorage)</label>
       </div>
-      <div id="dayMessage" class="tiny-muted mt-2">Waiting for activity settings.</div>
+      <div id="connectionMessage" class="tiny-muted mt-1">Master key is stored in sessionStorage for this tab only.</div>
     </section>
 
     <section class="panel">
-      <h2>Documents by Deployment Day</h2>
+      <div class="section-header">
+        <h2>Documents by Deployment Day</h2>
+        <div class="section-controls">
+          <span id="dayIndicator" class="day-chip">Day 0</span>
+          <button id="resetBtn" class="btn btn-outline-danger btn-sm" type="button">Reset</button>
+        </div>
+      </div>
+      <div id="dayMessage" class="tiny-muted mb-2">Waiting for activity settings.</div>
       <div class="table-wrap">
         <table class="table table-sm align-middle mb-0">
           <thead class="table-light sticky-top">
             <tr>
-              <th scope="col" style="width: 130px;">Day</th>
+              <th scope="col" style="width: 110px;">Day</th>
               <th scope="col">Document</th>
-              <th scope="col" style="width: 160px;">Deploy Date</th>
+              <th scope="col" style="width: 140px;">Deploy Date</th>
+              <th scope="col" style="width: 100px;">Deployed</th>
             </tr>
           </thead>
           <tbody id="documentsBody">
-            <tr><td colspan="3" class="text-muted">Loading documents...</td></tr>
+            <tr><td colspan="4" class="text-muted">Loading documents...</td></tr>
           </tbody>
         </table>
       </div>
@@ -285,6 +325,7 @@
         this.startDate = '';
         this.currentDay = 0;
         this.documents = [];
+        this.deployedSet = new Set();
         this.jsonbinBinId = null;
         this.jsonbinAccessKey = null;
         this.jsonbinMasterKey = null;
@@ -297,11 +338,10 @@
         this.masterKeyInput = document.getElementById('masterKeyInput');
         this.connectKeyBtn = document.getElementById('connectKeyBtn');
         this.clearKeyBtn = document.getElementById('clearKeyBtn');
+        this.rememberKeyCheck = document.getElementById('rememberKeyCheck');
         this.connectionMessage = document.getElementById('connectionMessage');
 
         this.dayIndicator = document.getElementById('dayIndicator');
-        this.dayBackBtn = document.getElementById('dayBackBtn');
-        this.dayForwardBtn = document.getElementById('dayForwardBtn');
         this.resetBtn = document.getElementById('resetBtn');
         this.dayMessage = document.getElementById('dayMessage');
 
@@ -311,8 +351,8 @@
       async init() {
         this.openInboxLink.href = `inbox.html?url=${encodeURIComponent(this.activityBaseUrl)}`;
         this.bindEvents();
-        this.restoreMasterKey();
         await this.loadSettings();
+        this.restoreMasterKey();
         await this.loadDocuments();
         await this.refreshDayFromBin();
         this.startPolling();
@@ -323,17 +363,35 @@
       bindEvents() {
         this.connectKeyBtn.addEventListener('click', () => this.connectMasterKey());
         this.clearKeyBtn.addEventListener('click', () => this.clearMasterKey());
-        this.dayBackBtn.addEventListener('click', () => this.setDay(this.currentDay - 1));
-        this.dayForwardBtn.addEventListener('click', () => this.setDay(this.currentDay + 1));
-        this.resetBtn.addEventListener('click', () => this.setDay(0));
+        this.resetBtn.addEventListener('click', () => this.startDay(0));
+      }
+
+      localStorageKey() {
+        return this.jsonbinBinId ? `jsonbinMasterKey:${this.jsonbinBinId}` : null;
+      }
+
+      sessionStorageKey() {
+        return this.jsonbinBinId ? `jsonbinMasterKey:${this.jsonbinBinId}` : 'jsonbinMasterKey';
       }
 
       restoreMasterKey() {
-        const savedKey = sessionStorage.getItem('jsonbinMasterKey');
-        if (savedKey) {
-          this.jsonbinMasterKey = savedKey;
+        const localKey = this.localStorageKey();
+        const sessionKey = this.sessionStorageKey();
+        const persistedKey = localKey ? localStorage.getItem(localKey) : null;
+        const sessionKeyValue = sessionStorage.getItem(sessionKey) || sessionStorage.getItem('jsonbinMasterKey');
+
+        if (persistedKey) {
+          this.jsonbinMasterKey = persistedKey;
           this.masterKeyInput.value = '********';
+          this.rememberKeyCheck.checked = true;
+          this.connectionMessage.textContent = 'Master key loaded from localStorage.';
+        } else if (sessionKeyValue) {
+          this.jsonbinMasterKey = sessionKeyValue;
+          this.masterKeyInput.value = '********';
+          this.rememberKeyCheck.checked = false;
+          this.connectionMessage.textContent = 'Master key loaded from sessionStorage.';
         }
+
         this.updateMasterKeyBadge();
       }
 
@@ -342,18 +400,36 @@
         if (!key || key === '********') {
           return;
         }
+
         this.jsonbinMasterKey = key;
-        sessionStorage.setItem('jsonbinMasterKey', key);
+        const localKey = this.localStorageKey();
+        const sessionKey = this.sessionStorageKey();
+
+        if (this.rememberKeyCheck.checked && localKey) {
+          localStorage.setItem(localKey, key);
+          sessionStorage.removeItem(sessionKey);
+          sessionStorage.removeItem('jsonbinMasterKey');
+          this.connectionMessage.textContent = 'Master key saved to localStorage (persists until cleared).';
+        } else {
+          sessionStorage.setItem(sessionKey, key);
+          if (localKey) localStorage.removeItem(localKey);
+          this.connectionMessage.textContent = 'Master key connected for this tab session.';
+        }
+
         this.masterKeyInput.value = '********';
-        this.connectionMessage.textContent = 'Master key connected for this tab session.';
         this.updateMasterKeyBadge();
       }
 
       clearMasterKey() {
         this.jsonbinMasterKey = null;
+        const localKey = this.localStorageKey();
+        const sessionKey = this.sessionStorageKey();
+        if (localKey) localStorage.removeItem(localKey);
+        sessionStorage.removeItem(sessionKey);
         sessionStorage.removeItem('jsonbinMasterKey');
         this.masterKeyInput.value = '';
-        this.connectionMessage.textContent = 'Master key cleared.';
+        this.rememberKeyCheck.checked = false;
+        this.connectionMessage.textContent = 'Master key cleared from storage.';
         this.updateMasterKeyBadge();
       }
 
@@ -402,16 +478,20 @@
             const day = Number.isNaN(dayValue) ? 0 : Math.max(0, dayValue);
             const title = doc.title || doc.description || `Document ${index + 1}`;
             const description = doc.description || '';
+            const relativeUrl = doc.url || '';
+            const autoDeploy = doc.autoDeploy !== false;
             return {
               day,
               title,
               description,
+              relativeUrl,
+              autoDeploy,
               order: index,
             };
           });
         } catch (err) {
           this.documents = [];
-          this.documentsBody.innerHTML = `<tr><td colspan="3" class="text-danger">Failed to load documents: ${this.escapeHtml(err.message)}</td></tr>`;
+          this.documentsBody.innerHTML = `<tr><td colspan="4" class="text-danger">Failed to load documents: ${this.escapeHtml(err.message)}</td></tr>`;
         }
       }
 
@@ -432,9 +512,13 @@
             this.currentDay = Math.max(0, dayValue);
             this.updateDayIndicator();
           }
+          if (Array.isArray(record && record.deployed)) {
+            this.deployedSet = new Set(record.deployed);
+          }
           this.binReadBadge.className = 'badge-soft';
           this.binReadBadge.textContent = 'JSONBin read OK';
           this.dayMessage.textContent = `Synced from JSONBin at ${new Date().toLocaleTimeString()}.`;
+          this.renderDocumentTable();
         } catch (err) {
           this.binReadBadge.className = 'badge-soft err';
           this.binReadBadge.textContent = 'JSONBin read failed';
@@ -442,29 +526,60 @@
         }
       }
 
-      async setDay(nextDay) {
-        const day = Math.max(0, nextDay);
+      async writeState() {
         if (!this.jsonbinBinId) {
-          this.dayMessage.textContent = 'Cannot write day: missing jsonbinBinId.';
+          this.dayMessage.textContent = 'Cannot write: missing jsonbinBinId.';
           return;
         }
         if (!this.jsonbinMasterKey) {
-          this.dayMessage.textContent = 'Connect a master key before writing day updates.';
+          this.dayMessage.textContent = 'Connect a master key before deploying documents.';
           return;
         }
-
         try {
-          await jsonbinWrite(this.jsonbinBinId, this.jsonbinMasterKey, { day });
-          this.currentDay = day;
-          this.updateDayIndicator();
-          this.dayMessage.textContent = `Day ${day} written to JSONBin at ${new Date().toLocaleTimeString()}.`;
+          await jsonbinWrite(this.jsonbinBinId, this.jsonbinMasterKey, {
+            day: this.currentDay,
+            deployed: Array.from(this.deployedSet),
+          });
           this.binReadBadge.className = 'badge-soft';
           this.binReadBadge.textContent = 'JSONBin read/write OK';
+          this.dayMessage.textContent = `Saved at ${new Date().toLocaleTimeString()}.`;
         } catch (err) {
           this.dayMessage.textContent = `Write failed: ${err.message}`;
           this.binReadBadge.className = 'badge-soft err';
           this.binReadBadge.textContent = 'JSONBin write failed';
         }
+      }
+
+      toggleDoc(relativeUrl) {
+        if (this.deployedSet.has(relativeUrl)) {
+          this.deployedSet.delete(relativeUrl);
+        } else {
+          this.deployedSet.add(relativeUrl);
+        }
+        this.renderDocumentTable();
+        this.writeState();
+      }
+
+      startDay(day) {
+        this.currentDay = Math.max(0, day);
+
+        // Revert state by removing deployments from later days.
+        for (const doc of this.documents) {
+          if (doc.day > this.currentDay) {
+            this.deployedSet.delete(doc.relativeUrl);
+          }
+        }
+
+        // Auto-deploy all eligible docs up to the started day.
+        for (const doc of this.documents) {
+          if (doc.day <= this.currentDay && doc.autoDeploy) {
+            this.deployedSet.add(doc.relativeUrl);
+          }
+        }
+
+        this.updateDayIndicator();
+        this.renderDocumentTable();
+        this.writeState();
       }
 
       updateDayIndicator() {
@@ -481,45 +596,94 @@
 
       renderDocumentTable() {
         if (!this.documents || this.documents.length === 0) {
-          this.documentsBody.innerHTML = '<tr><td colspan="3" class="text-muted">No documents found.</td></tr>';
+          this.documentsBody.innerHTML = '<tr><td colspan="4" class="text-muted">No documents found.</td></tr>';
           return;
         }
 
         const grouped = new Map();
         for (const doc of this.documents) {
-          if (!grouped.has(doc.day)) {
-            grouped.set(doc.day, []);
-          }
+          if (!grouped.has(doc.day)) grouped.set(doc.day, []);
           grouped.get(doc.day).push(doc);
         }
 
         const sortedDays = Array.from(grouped.keys()).sort((a, b) => a - b);
-        const rows = [];
+        const tbody = this.documentsBody;
+        tbody.innerHTML = '';
 
         for (const day of sortedDays) {
+          const dayDocs = grouped.get(day).sort((a, b) => a.order - b.order);
           const deployDate = this.computeDeployDate(day);
-          rows.push(`
-            <tr class="day-group-row">
-              <td colspan="3">Day ${day}${deployDate ? ` - ${deployDate}` : ''}</td>
-            </tr>
-          `);
 
-          const docs = grouped.get(day).sort((a, b) => a.order - b.order);
-          for (const doc of docs) {
-            rows.push(`
-              <tr>
-                <td>${day}</td>
-                <td>
-                  <div class="doc-title">${this.escapeHtml(doc.title)}</div>
-                  ${doc.description ? `<div class="doc-desc">${this.escapeHtml(doc.description)}</div>` : ''}
-                </td>
-                <td>${this.escapeHtml(this.computeDeployDate(day))}</td>
-              </tr>
-            `);
+          // Day group header row
+          const groupTr = document.createElement('tr');
+          groupTr.className = 'day-group-row';
+          const groupTd = document.createElement('td');
+          groupTd.colSpan = 4;
+
+          const groupInner = document.createElement('div');
+          groupInner.style.display = 'flex';
+          groupInner.style.alignItems = 'center';
+          groupInner.style.justifyContent = 'space-between';
+          groupInner.style.gap = '0.5rem';
+
+          const groupLabel = document.createElement('span');
+          groupLabel.textContent = `Day ${day}${deployDate ? ` — ${deployDate}` : ''}`;
+
+          const groupBtn = document.createElement('button');
+          groupBtn.type = 'button';
+          groupBtn.className = `btn btn-sm btn-deploy ${day === this.currentDay ? 'btn-primary' : 'btn-outline-primary'}`;
+          groupBtn.textContent = 'Start Day';
+          groupBtn.addEventListener('click', () => this.startDay(day));
+
+          groupInner.appendChild(groupLabel);
+          groupInner.appendChild(groupBtn);
+          groupTd.appendChild(groupInner);
+          groupTr.appendChild(groupTd);
+          tbody.appendChild(groupTr);
+
+          for (const doc of dayDocs) {
+            const deployed = this.deployedSet.has(doc.relativeUrl);
+            const tr = document.createElement('tr');
+            if (deployed) tr.className = 'doc-deployed';
+
+            const tdDay = document.createElement('td');
+            tdDay.textContent = day;
+
+            const tdDoc = document.createElement('td');
+            const titleDiv = document.createElement('div');
+            titleDiv.className = 'doc-title';
+            titleDiv.textContent = doc.title;
+            tdDoc.appendChild(titleDiv);
+            if (doc.description) {
+              const descDiv = document.createElement('div');
+              descDiv.className = 'doc-desc';
+              descDiv.textContent = doc.description;
+              tdDoc.appendChild(descDiv);
+            }
+
+            const modeDiv = document.createElement('div');
+            modeDiv.className = `doc-mode ${doc.autoDeploy ? '' : 'manual'}`;
+            modeDiv.textContent = doc.autoDeploy ? 'Auto on day start' : 'Manual deploy';
+            tdDoc.appendChild(modeDiv);
+
+            const tdDate = document.createElement('td');
+            tdDate.textContent = this.computeDeployDate(day);
+
+            const tdAction = document.createElement('td');
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = `btn btn-sm btn-deploy ${deployed ? 'btn-success' : 'btn-outline-secondary'}`;
+            btn.textContent = deployed ? 'Undeploy' : 'Deploy';
+            btn.addEventListener('click', () => this.toggleDoc(doc.relativeUrl));
+            tdAction.appendChild(btn);
+
+            tr.appendChild(tdDay);
+            tr.appendChild(tdDoc);
+            tr.appendChild(tdDate);
+            tr.appendChild(tdAction);
+            tbody.appendChild(tr);
           }
         }
-
-        this.documentsBody.innerHTML = rows.join('');
       }
 
       escapeHtml(text) {

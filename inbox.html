@@ -201,7 +201,7 @@
 
     <script>
         class DocumentViewer {
-            constructor(documentListUrl, settingsUrl, pollInterval = 30000, initialDay = 0, dayFromUrl = false) {
+            constructor(documentListUrl, settingsUrl, pollInterval = 30000, initialDay = 0, dayFromUrl = false, testMode = false) {
                 this.documentListUrl = documentListUrl;
                 this.settingsUrl = settingsUrl;
                 this.pollInterval = pollInterval;
@@ -215,9 +215,11 @@
                 this.startDate = "2025-01-01";
                 this.currentDay = initialDay;
                 this.dayFromUrl = dayFromUrl;
+                this.testMode = testMode;
                 this.newDay = true;
                 this.jsonbinBinId = null;
                 this.jsonbinAccessKey = null;
+                this.deployedUrls = null; // null = fall back to day-based filter
 
                 // Elements
                 this.tableBody = document.querySelector('#documentTable tbody');
@@ -241,6 +243,13 @@
             async init() {
                 this.intervalLabel.textContent = Math.round(this.pollInterval / 1000) + 's';
                 this.updateDayIndicator();
+
+                // Show day nav buttons only in test mode
+                if (!this.testMode) {
+                    this.dayBackBtn.style.display = 'none';
+                    this.dayForwardBtn.style.display = 'none';
+                }
+
                 await this.loadSettings();
                 console.log("Settings: ", {
                     title: this.title,
@@ -251,7 +260,11 @@
                 this.loadDocuments();
 
                 if (!this.dayFromUrl) {
-                    this.startDaySync();
+                    if (this.testMode) {
+                        // test mode: no JSONBin, use local day counter only
+                    } else {
+                        this.startDaySync();
+                    }
                 }
 
                 this.renderDocumentList();
@@ -286,6 +299,23 @@
                     if (record && typeof record.day === 'number') {
                         this.updateCurrentDay(record.day);
                     }
+                    // Update deployed set if present
+                    if (Array.isArray(record && record.deployed)) {
+                        const prev = this.deployedUrls;
+                        this.deployedUrls = new Set(record.deployed);
+                        // Detect newly deployed docs for table-new highlight
+                        if (prev !== null) {
+                            this.newlyDeployed = new Set(
+                                Array.from(this.deployedUrls).filter(u => !prev.has(u))
+                            );
+                        } else {
+                            this.newlyDeployed = new Set();
+                        }
+                        this.renderDocumentList();
+                    } else {
+                        // No deployed array — fall back to day-based
+                        this.deployedUrls = null;
+                    }
                 } catch (err) {
                     console.error('JSONBin polling error:', err);
                 }
@@ -300,6 +330,7 @@
                     if (!Array.isArray(data)) throw new Error('Invalid JSON format: expected an array');
                     this.documents = data.map((doc) => {
                         const copy = { ...doc };
+                        copy.relativeUrl = doc.url || ''; // preserve original relative URL for deploy matching
                         if (copy.url) {
                             copy.url = new URL(copy.url, this.documentListUrl).toString();
                         }
@@ -397,11 +428,17 @@
 
                 this.tableBody.innerHTML = '';
                 this.documents.forEach((doc, idx) => {
-                    if (doc.day > this.currentDay) {
-                        return;
+                    // Visibility check: deployed-set mode or day-based fallback (test mode always day-based)
+                    const useDeployedSet = !this.testMode && this.deployedUrls !== null;
+                    if (useDeployedSet) {
+                        if (!this.deployedUrls.has(doc.relativeUrl)) return;
+                    } else {
+                        if (doc.day > this.currentDay) return;
                     }
-                    const day = (doc.day || `${idx + 1}`);
-                    // console.log("Document:", doc.title, " Date:", doc.date);
+
+                    const isNew = useDeployedSet
+                        ? (this.newlyDeployed && this.newlyDeployed.has(doc.relativeUrl))
+                        : doc.day === this.currentDay;
 
                     const title = (doc.title || doc.description || `Document ${idx + 1}`);
                     const description = (doc.description || doc.title || '');
@@ -413,7 +450,7 @@
                     tr.setAttribute('data-index', idx);
                     tr.classList.add('table-row');
                     if (idx === this.activeIndex) tr.classList.add('table-primary');
-                    if (doc.day === this.currentDay) tr.classList.add('table-new');
+                    if (isNew) tr.classList.add('table-new');
 
                     const tdDoc = document.createElement('td');
 
@@ -450,7 +487,8 @@
                     // tr.appendChild(tdDesc);
 
                     tr.addEventListener('click', (e) => this.displayDocument(idx, e.currentTarget));
-                    if (this.newDay && doc.day === this.currentDay) {
+                    // Auto-select: newly deployed doc (deployed-set mode) or first doc on new day (test/day mode)
+                    if (isNew && this.newDay) {
                         this.displayDocument(idx, tdDoc);
                     }
 
@@ -552,6 +590,7 @@
             const dayParam = urlParams.get('day');
             const initialDay = dayParam !== null ? parseInt(dayParam, 10) : 0;
             const dayFromUrl = dayParam !== null;
+            const testMode = (urlParams.get('mode') || '').toLowerCase() === 'test';
 
             return {
                 documentListUrl,
@@ -559,6 +598,7 @@
                 pollInterval,
                 initialDay,
                 dayFromUrl,
+                testMode,
             };
         }
 
@@ -569,7 +609,8 @@
                 config.settingsUrl,
                 config.pollInterval,
                 config.initialDay,
-                config.dayFromUrl
+                config.dayFromUrl,
+                config.testMode
             );
         })();
     </script>
